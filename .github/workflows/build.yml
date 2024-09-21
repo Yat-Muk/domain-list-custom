@@ -91,7 +91,7 @@ jobs:
       - name: Generate ads
         run: |
           curl -sSL ${ads1} | grep -Ev '#|payload:' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- '/DOMAIN,/" > ./tmp/temp-ads.txt
-          curl -sSL ${ads2} | grep -Ev '#|payload:' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- /DOMAIN,/" > ./tmp/temp-ads.txt
+          curl -sSL ${ads2} | grep -Ev '#|payload:' | grep -Ev '^-' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- '/DOMAIN,/" > ./tmp/temp-ads.txt
           sort --ignore-case -u ./tmp/temp-ads.txt > ./domains/ads.list
 
       - name: Generate applications
@@ -168,31 +168,31 @@ jobs:
 
       - name: Generate hulu
         run: |
-          curl -sSL ${hulu} | grep -Ev '#|payload:' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- /DOMAIN,/" | sort --ignore-case > ./domains/hulu.list
+          curl -sSL ${hulu} | grep -Ev '#|payload:' | grep -Ev '^-' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- '/DOMAIN,/" | sort --ignore-case > ./domains/hulu.list
 
       - name: Generate telegram
         run: |
-          curl -sSL ${telegram} | grep -Ev '#|payload:' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- /DOMAIN,/" | sort --ignore-case > ./domains/telegram.list
+          curl -sSL ${telegram} | grep -Ev '#|payload:' | grep -Ev '^-' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- '/DOMAIN,/" | sort --ignore-case > ./domains/telegram.list
 
       - name: Generate youtubemusic
         run: |
-          curl -sSL ${youtubemusic} | grep -Ev '#|payload:' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- /DOMAIN,/" | sort --ignore-case > ./domains/youtubemusic.list
+          curl -sSL ${youtubemusic} | grep -Ev '#|payload:' | grep -Ev '^-' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- '/DOMAIN,/" | sort --ignore-case > ./domains/youtubemusic.list
 
       - name: Generate twitter
         run: |
-          curl -sSL ${twitter} | grep -Ev '#|payload:' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- /DOMAIN,/" | sort --ignore-case > ./domains/twitter.list
+          curl -sSL ${twitter} | grep -Ev '#|payload:' | grep -Ev '^-' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- '/DOMAIN,/" | sort --ignore-case > ./domains/twitter.list
 
       - name: Generate github
         run: |
-          curl -sSL ${github} | grep -Ev '#|payload:' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- /DOMAIN,/" | sort --ignore-case > ./domains/github.list
+          curl -sSL ${github} | grep -Ev '#|payload:' | grep -Ev '^-' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- '/DOMAIN,/" | sort --ignore-case > ./domains/github.list
 
       - name: Generate gitlab
         run: |
-          curl -sSL ${gitlab} | grep -Ev '#|payload:' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- /DOMAIN,/" | sort --ignore-case > ./domains/gitlab.list
+          curl -sSL ${gitlab} | grep -Ev '#|payload:' | grep -Ev '^-' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- '/DOMAIN,/" | sort --ignore-case > ./domains/gitlab.list
 
       - name: Generate cloudflare
         run: |
-          curl -sSL ${cloudflare} | grep -Ev '#|payload:' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- /DOMAIN,/" | sort --ignore-case > ./domains/cloudflare.list
+          curl -sSL ${cloudflare} | grep -Ev '#|payload:' | grep -Ev '^-' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- '/DOMAIN,/" | sort --ignore-case > ./domains/cloudflare.list
 
       - name: Generate adobe
         run: |
@@ -200,31 +200,31 @@ jobs:
 
       - name: Generate binance
         run: |
-          curl -sSL ${binance} | grep -Ev '#|payload:' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- /DOMAIN,/" | sort --ignore-case > ./domains/binance.list
+          curl -sSL ${binance} | grep -Ev '#|payload:' | grep -Ev '^-' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- '/DOMAIN,/" | sort --ignore-case > ./domains/binance.list
 
       - name: Generate douyin
         run: |
-          curl -sSL ${douyin} | grep -Ev '#|payload:' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- /DOMAIN,/" | sort --ignore-case > ./domains/douyin.list
+          curl -sSL ${douyin} | grep -Ev '#|payload:' | grep -Ev '^-' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- '/DOMAIN,/" | sort --ignore-case > ./domains/douyin.list
 
       - name: Generate duolingo
         run: |
-          curl -sSL ${duolingo} | grep -Ev '#|payload:' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- /DOMAIN,/" | sort --ignore-case > ./domains/duolingo.list
+          curl -sSL ${duolingo} | grep -Ev '#|payload:' | grep -Ev '^-' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- '/DOMAIN,/" | sort --ignore-case > ./domains/duolingo.list
 
       - name: Generate facebook
         run: |
-          curl -sSL ${facebook} | grep -Ev '#|payload:' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- /DOMAIN,/" | sort --ignore-case > ./domains/facebook.list
+          curl -sSL ${facebook} | grep -Ev '#|payload:' | grep -Ev '^-' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- '/DOMAIN,/" | sort --ignore-case > ./domains/facebook.list
 
       - name: Generate instagram
         run: |
-          curl -sSL ${instagram} | grep -Ev '#|payload:' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- /DOMAIN,/" | sort --ignore-case > ./domains/instagram.list
+          curl -sSL ${instagram} | grep -Ev '#|payload:' | grep -Ev '^-' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- '/DOMAIN,/" | sort --ignore-case > ./domains/instagram.list
 
       - name: Generate shopee
         run: |
-          curl -sSL ${shopee} | grep -Ev '#|payload:' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- /DOMAIN,/" | sort --ignore-case > ./domains/shopee.list
+          curl -sSL ${shopee} | grep -Ev '#|payload:' | grep -Ev '^-' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- '/DOMAIN,/" | sort --ignore-case > ./domains/shopee.list
 
       - name: Generate wechat
         run: |
-          curl -sSL ${wechat} | grep -Ev '#|payload:' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- /DOMAIN,/" | sort --ignore-case > ./domains/wechat.list
+          curl -sSL ${wechat} | grep -Ev '#|payload:' | grep -Ev '^-' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- '/DOMAIN,/" | sort --ignore-case > ./domains/wechat.list
 
       - name: Generate ai
         run: |
