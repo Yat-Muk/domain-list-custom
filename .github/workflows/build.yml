@@ -180,7 +180,7 @@ jobs:
 
       - name: Generate twitter
         run: |
-          curl -sSL ${twitter} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/-twitter.list
+          curl -sSL ${twitter} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/twitter.list
 
       - name: Generate github
         run: |
