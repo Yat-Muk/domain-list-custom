@@ -168,31 +168,31 @@ jobs:
 
       - name: Generate hulu
         run: |
-          curl -sSL ${hulu} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./tmp/temp-hulu.txt
+          curl -sSL ${hulu} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./domains/hulu.txt
 
       - name: Generate telegram
         run: |
-          curl -sSL ${telegram} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./tmp/temp-telegram.txt
+          curl -sSL ${telegram} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./domains/telegram.txt
 
       - name: Generate youtubemusic
         run: |
-          curl -sSL ${youtubemusic} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./tmp/temp-youtubemusic.txt
+          curl -sSL ${youtubemusic} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./domains/youtubemusic.txt
 
       - name: Generate twitter
         run: |
-          curl -sSL ${twitter} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./tmp/temp-twitter.txt
+          curl -sSL ${twitter} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./domains/-twitter.txt
 
       - name: Generate github
         run: |
-          curl -sSL ${github} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./tmp/temp-github.txt
+          curl -sSL ${github} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./domains/github.txt
 
       - name: Generate gitlab
         run: |
-          curl -sSL ${gitlab} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./tmp/temp-gitlab.txt
+          curl -sSL ${gitlab} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./domains/gitlab.txt
 
       - name: Generate cloudflare
         run: |
-          curl -sSL ${cloudflare} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./tmp/temp-cloudflare.txt
+          curl -sSL ${cloudflare} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./domains/cloudflare.txt
 
       - name: Generate adobe
         run: |
@@ -200,31 +200,31 @@ jobs:
 
       - name: Generate binance
         run: |
-          curl -sSL ${binance} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./tmp/temp-binance.txt
+          curl -sSL ${binance} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./domains/binance.txt
 
       - name: Generate douyin
         run: |
-          curl -sSL ${douyin} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./tmp/temp-douyin.txt
+          curl -sSL ${douyin} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./domains/douyin.txt
 
       - name: Generate duolingo
         run: |
-          curl -sSL ${duolingo} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./tmp/temp-duolingo.txt
+          curl -sSL ${duolingo} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./domains/duolingo.txt
 
       - name: Generate facebook
         run: |
-          curl -sSL ${facebook} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./tmp/temp-facebook.txt
+          curl -sSL ${facebook} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./domains/facebook.txt
 
       - name: Generate instagram
         run: |
-          curl -sSL ${instagram} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./tmp/temp-instagram.txt
+          curl -sSL ${instagram} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./domains/instagram.txt
 
       - name: Generate shopee
         run: |
-          curl -sSL ${shopee} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./tmp/temp-shopee.txt
+          curl -sSL ${shopee} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./domains/shopee.txt
           
       - name: Generate wechat
         run: |
-          curl -sSL ${wechat} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./tmp/temp-wechat.txt
+          curl -sSL ${wechat} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./domains/wechat.txt
 
       - name: Generate ai
         run: |
