@@ -241,10 +241,6 @@ jobs:
           DOMAIN-KEYWORD,ipv6test
           DOMAIN-KEYWORD,test-ipv6
           DOMAIN-KEYWORD,testipv6
-          DOMAIN,cf.zmdhc.com
-          DOMAIN,7sc.cc
-          DOMAIN,xs.wxtv.cc
-          DOMAIN,www.pcmag.com
           EOF
           curl -sSL ${networktest} | grep -Ev '#|IP-' >> ./tmp/temp-networktest.txt
           sort --ignore-case -u ./tmp/temp-networktest.txt > ./domains/networktest.list
@@ -271,6 +267,10 @@ jobs:
           DOMAIN-SUFFIX,czz9.com
           DOMAIN-SUFFIX,czzy33.com
           DOMAIN-SUFFIX,czzy.tv
+          DOMAIN,cf.zmdhc.com
+          DOMAIN,7sc.cc
+          DOMAIN,xs.wxtv.cc
+          DOMAIN,www.pcmag.com
           EOF
 
       - name: Release and upload `clash` assets
