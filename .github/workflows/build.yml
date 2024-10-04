@@ -258,6 +258,17 @@ jobs:
           sort --ignore-case -u ./tmp/temp-cn.txt > ./domains/cn.list
           rm -rf ./tmp* ./publish*
 
+      - name: Generate custom
+        run: |
+          cat <<EOF > ./domains/custom.list
+          DOMAIN-SUFFIX,cz01.vip
+          DOMAIN-SUFFIX,cz01.tv
+          DOMAIN-SUFFIX,czzy88.com
+          DOMAIN-SUFFIX,czz9.com
+          DOMAIN-SUFFIX,czzy33.com
+          DOMAIN-SUFFIX,czzy.tv
+          EOF
+
       - name: Release and upload `clash` assets
         uses: svenstaro/upload-release-action@v2
         with:
