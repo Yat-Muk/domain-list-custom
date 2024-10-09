@@ -1,6 +1,6 @@
 module domain-list-custom
 
-go 1.23.1
+go 1.23.2
 
 require (
 	github.com/v2fly/v2ray-core/v5 v5.20.0
