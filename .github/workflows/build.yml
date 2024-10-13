@@ -103,11 +103,9 @@ jobs:
       - name: Generate private
         run: |
           cat <<EOF > ./tmp/temp-private.txt
-          DOMAIN,clash.razord.top
           DOMAIN,clash.metacubex.one
           DOMAIN,yacd.haishan.me
           DOMAIN,yacd.metacubex.one
-          DOMAIN,d.metacubex.one
           DOMAIN,metacubex.github.io
           DOMAIN,metacubexd.pages.dev
           EOF
