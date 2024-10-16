@@ -54,6 +54,7 @@ jobs:
           echo "instagram=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Instagram/Instagram.yaml" >> $GITHUB_ENV
           echo "shopee=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Shopee/Shopee.yaml" >> $GITHUB_ENV
           echo "wechat=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/WeChat/WeChat.yaml" >> $GITHUB_ENV
+          echo "lan=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Lan/Lan.yaml" >> $GITHUB_ENV
           
         shell: bash
 
@@ -223,6 +224,10 @@ jobs:
       - name: Generate wechat
         run: |
           curl -sSL ${wechat} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/wechat.list
+
+      - name: Generate lan
+        run: |
+          curl -sSL ${adobe} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/lan.list
 
       - name: Generate ai
         run: |
