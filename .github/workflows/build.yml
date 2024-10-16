@@ -227,7 +227,7 @@ jobs:
 
       - name: Generate lan
         run: |
-          curl -sSL ${wechat} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/lan.list
+          curl -sSL ${lan} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/lan.list
 
       - name: Generate ai
         run: |
