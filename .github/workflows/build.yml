@@ -55,6 +55,7 @@ jobs:
           echo "shopee=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Shopee/Shopee.yaml" >> $GITHUB_ENV
           echo "wechat=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/WeChat/WeChat.yaml" >> $GITHUB_ENV
           echo "lan=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Lan/Lan.yaml" >> $GITHUB_ENV
+          echo "applenews=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/AppleNews/AppleNews.yaml" >> $GITHUB_ENV
           
         shell: bash
 
@@ -228,6 +229,10 @@ jobs:
       - name: Generate lan
         run: |
           curl -sSL ${lan} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/lan.list
+
+      - name: Generate applenews
+        run: |
+          curl -sSL ${lan} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/applenews.list
 
       - name: Generate ai
         run: |
