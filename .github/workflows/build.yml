@@ -232,7 +232,7 @@ jobs:
 
       - name: Generate applenews
         run: |
-          curl -sSL ${lan} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/applenews.list
+          curl -sSL ${applenews} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/applenews.list
 
       - name: Generate ai
         run: |
