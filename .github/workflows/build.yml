@@ -57,6 +57,7 @@ jobs:
           echo "lan=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Lan/Lan.yaml" >> $GITHUB_ENV
           echo "applenews=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/AppleNews/AppleNews.yaml" >> $GITHUB_ENV
           echo "applemusic=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/AppleMusic/AppleMusic.yaml" >> $GITHUB_ENV
+          echo "google=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Google/Google.yaml" >> $GITHUB_ENV
           
         shell: bash
 
@@ -238,6 +239,10 @@ jobs:
       - name: Generate applemusic
         run: |
           curl -sSL ${applemusic} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/applemusic.list
+
+      - name: Generate google
+        run: |
+          curl -sSL ${google} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/google.list    
 
       - name: Generate ai
         run: |
