@@ -243,11 +243,11 @@ jobs:
 
       - name: Generate google
         run: |
-          curl -sSL ${google} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/google.list    
+          curl -sSL ${google} | grep -Ev '#|IP-' | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/google.list    
 
       - name: Generate apple_classical
         run: |
-          curl -sSL ${apple_classical} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/apple_classical.list
+          curl -sSL ${apple_classical} | grep -Ev '#|IP-' | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/apple_classical.list
 
       - name: Generate ai
         run: |
