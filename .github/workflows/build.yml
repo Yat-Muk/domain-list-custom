@@ -59,6 +59,7 @@ jobs:
           echo "applemusic=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/AppleMusic/AppleMusic.yaml" >> $GITHUB_ENV
           echo "apple_classical=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Apple/Apple_Classical.yaml" >> $GITHUB_ENV
           echo "google=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Google/Google.yaml" >> $GITHUB_ENV
+          echo "truthSocial=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/TruthSocial/TruthSocial.yaml" >> $GITHUB_ENV
           
         shell: bash
 
@@ -243,7 +244,11 @@ jobs:
 
       - name: Generate google
         run: |
-          curl -sSL ${google} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/google.list    
+          curl -sSL ${google} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/google.list 
+
+      - name: Generate truthSocial
+        run: |
+          curl -sSL ${truthSocial} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/truthSocial.list
 
       - name: Generate apple_classical
         run: |
