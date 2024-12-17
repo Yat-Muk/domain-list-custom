@@ -60,6 +60,7 @@ jobs:
           echo "apple_classical=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Apple/Apple_Classical.yaml" >> $GITHUB_ENV
           echo "google=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Google/Google.yaml" >> $GITHUB_ENV
           echo "truthSocial=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/TruthSocial/TruthSocial.yaml" >> $GITHUB_ENV
+          echo "binance=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Binance/Binance.yaml" >> $GITHUB_ENV
           
         shell: bash
 
@@ -249,6 +250,10 @@ jobs:
       - name: Generate truthSocial
         run: |
           curl -sSL ${truthSocial} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/truthSocial.list
+
+      - name: Generate binance
+        run: |
+          curl -sSL ${binance} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/binance.list
 
       - name: Generate apple_classical
         run: |
