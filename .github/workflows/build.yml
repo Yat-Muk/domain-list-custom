@@ -161,7 +161,7 @@ jobs:
 
       - name: Generate youtube
         run: |
-          curl -sSL ${youtube} | grep -Ev '# | sort --ignore-case > ./domains/youtube.list
+          curl -sSL ${youtube} | grep -Ev | sort --ignore-case > ./domains/youtube.list
 
       - name: Generate tiktok
         run: |
