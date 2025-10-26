@@ -150,7 +150,7 @@ jobs:
       - name: Generate `private`
         run: |
           cat ./publish/private.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-private-suffix.txt
-          curl -sSL ${private} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-private-suffix.txt
+          curl -sSL ${private} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-private-suffix.txt
           sort --ignore-case -u ./tmp/temp-private-suffix.txt > ./tmp/private-suffix.txt
           cat <<EOF > ./tmp/temp-private-other.txt
           DOMAIN,board.zash.run.place
@@ -160,7 +160,7 @@ jobs:
           DOMAIN,yacd.metacubex.one
           EOF
           cat ./publish/private.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' >> ./tmp/temp-private-other.txt
-          curl -sSL ${private} | awk '/^DOMAIN,/' >> ./tmp/temp-private-other.txt
+          curl -sSL ${private} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-private-other.txt
           echo "DOMAIN-REGEX,^[^.]+$" >> ./tmp/temp-private-other.txt
           sort --ignore-case -u ./tmp/temp-private-other.txt > ./tmp/private-other.txt
 
@@ -205,31 +205,31 @@ jobs:
       - name: Generate `applemusic`
         run: |
           cat ./publish/applemusic.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-applemusic-suffix.txt
-          curl -sSL ${applemusic} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-applemusic-suffix.txt
+          curl -sSL ${applemusic} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-applemusic-suffix.txt
           sort --ignore-case -u ./tmp/temp-applemusic-suffix.txt > ./tmp/applemusic-suffix.txt
 
           cat ./publish/applemusic.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-applemusic-other.txt
-          curl -sSL ${applemusic} | awk '/^DOMAIN,/' >> ./tmp/temp-applemusic-other.txt
+          curl -sSL ${applemusic} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-applemusic-other.txt
           sort --ignore-case -u ./tmp/temp-applemusic-other.txt > ./tmp/applemusic-other.txt
 
       - name: Generate `applenews`
         run: |
           cat ./publish/applenews.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-applenews-suffix.txt
-          curl -sSL ${applenews} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-applenews-suffix.txt
+          curl -sSL ${applenews} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-applenews-suffix.txt
           sort --ignore-case -u ./tmp/temp-applenews-suffix.txt > ./tmp/applenews-suffix.txt
 
           cat ./publish/applenews.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-applenews-other.txt
-          curl -sSL ${applenews} | awk '/^DOMAIN,/' >> ./tmp/temp-applenews-other.txt
+          curl -sSL ${applenews} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-applenews-other.txt
           sort --ignore-case -u ./tmp/temp-applenews-other.txt > ./tmp/applenews-other.txt
 
       - name: Generate `apple_classical`
         run: |
           cat ./publish/apple_classical.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-apple_classical-suffix.txt
-          curl -sSL ${apple_classical} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-apple_classical-suffix.txt
+          curl -sSL ${apple_classical} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-apple_classical-suffix.txt
           sort --ignore-case -u ./tmp/temp-apple_classical-suffix.txt > ./tmp/apple_classical-suffix.txt
 
           cat ./publish/apple_classical.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-apple_classical-other.txt
-          curl -sSL ${apple_classical} | awk '/^DOMAIN,/' >> ./tmp/temp-apple_classical-other.txt
+          curl -sSL ${apple_classical} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-apple_classical-other.txt
           sort --ignore-case -u ./tmp/temp-apple_classical-other.txt > ./tmp/apple_classical-other.txt
 
       - name: Generate `google-cn`
@@ -242,11 +242,11 @@ jobs:
       - name: Generate `google`
         run: |
           cat ./publish/google.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-google-suffix.txt
-          curl -sSL ${google} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-google-suffix.txt
+          curl -sSL ${google} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-google-suffix.txt
           sort --ignore-case -u ./tmp/temp-google-suffix.txt > ./tmp/google-suffix.txt
 
           cat ./publish/google.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-google-other.txt
-          curl -sSL ${google} | awk '/^DOMAIN,/' >> ./tmp/temp-google-other.txt
+          curl -sSL ${google} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-google-other.txt
           sort --ignore-case -u ./tmp/temp-google-other.txt > ./tmp/google-other.txt
 
       - name: Generate `games-cn`
@@ -285,31 +285,31 @@ jobs:
       - name: Generate `douyin`
         run: |
           cat ./publish/douyin.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-douyin-suffix.txt
-          curl -sSL ${douyin} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-douyin-suffix.txt
+          curl -sSL ${douyin} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-douyin-suffix.txt
           sort --ignore-case -u ./tmp/temp-douyin-suffix.txt > ./tmp/douyin-suffix.txt
 
           cat ./publish/douyin.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-douyin-other.txt
-          curl -sSL ${douyin} | awk '/^DOMAIN,/' >> ./tmp/temp-douyin-other.txt
+          curl -sSL ${douyin} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-douyin-other.txt
           sort --ignore-case -u ./tmp/temp-douyin-other.txt > ./tmp/douyin-other.txt
 
       - name: Generate `duolingo`
         run: |
           cat ./publish/duolingo.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-duolingo-suffix.txt
-          curl -sSL ${duolingo} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-duolingo-suffix.txt
+          curl -sSL ${duolingo} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-duolingo-suffix.txt
           sort --ignore-case -u ./tmp/temp-duolingo-suffix.txt > ./tmp/duolingo-suffix.txt
 
           cat ./publish/duolingo.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-duolingo-other.txt
-          curl -sSL ${duolingo} | awk '/^DOMAIN,/' >> ./tmp/temp-duolingo-other.txt
+          curl -sSL ${duolingo} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-duolingo-other.txt
           sort --ignore-case -u ./tmp/temp-duolingo-other.txt > ./tmp/duolingo-other.txt
 
       - name: Generate `facebook`
         run: |
           cat ./publish/facebook.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-facebook-suffix.txt
-          curl -sSL ${facebook} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-facebook-suffix.txt
+          curl -sSL ${facebook} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-facebook-suffix.txt
           sort --ignore-case -u ./tmp/temp-facebook-suffix.txt > ./tmp/facebook-suffix.txt
 
           cat ./publish/facebook.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-facebook-other.txt
-          curl -sSL ${facebook} | awk '/^DOMAIN,/' >> ./tmp/temp-facebook-other.txt
+          curl -sSL ${facebook} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-facebook-other.txt
           sort --ignore-case -u ./tmp/temp-facebook-other.txt > ./tmp/facebook-other.txt
 
       - name: Generate `max`
@@ -342,11 +342,11 @@ jobs:
       - name: Generate `youtubemusic`
         run: |
           cat ./publish/youtubemusic.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-youtubemusic-suffix.txt
-          curl -sSL ${youtubemusic} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-youtubemusic-suffix.txt
+          curl -sSL ${youtubemusic} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-youtubemusic-suffix.txt
           sort --ignore-case -u ./tmp/temp-youtubemusic-suffix.txt > ./tmp/youtubemusic-suffix.txt
 
           cat ./publish/youtubemusic.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-youtubemusic-other.txt
-          curl -sSL ${youtubemusic} | awk '/^DOMAIN,/' >> ./tmp/temp-youtubemusic-other.txt
+          curl -sSL ${youtubemusic} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-youtubemusic-other.txt
           sort --ignore-case -u ./tmp/temp-youtubemusic-other.txt > ./tmp/youtubemusic-other.txt
 
       - name: Generate `youtube`
@@ -370,11 +370,11 @@ jobs:
       - name: Generate `binance`
         run: |
           cat ./publish/binance.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-binance-suffix.txt
-          curl -sSL ${binance} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-binance-suffix.txt
+          curl -sSL ${binance} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-binance-suffix.txt
           sort --ignore-case -u ./tmp/temp-binance-suffix.txt > ./tmp/binance-suffix.txt
 
           cat ./publish/binance.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-binance-other.txt
-          curl -sSL ${binance} | awk '/^DOMAIN,/' >> ./tmp/temp-binance-other.txt
+          curl -sSL ${binance} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-binance-other.txt
           sort --ignore-case -u ./tmp/temp-binance-other.txt > ./tmp/binance-other.txt
 
       - name: Generate `bilibili`
@@ -389,11 +389,11 @@ jobs:
       - name: Generate `cloudflare`
         run: |
           cat ./publish/cloudflare.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-cloudflare-suffix.txt
-          curl -sSL ${cloudflare} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-cloudflare-suffix.txt
+          curl -sSL ${cloudflare} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-cloudflare-suffix.txt
           sort --ignore-case -u ./tmp/temp-cloudflare-suffix.txt > ./tmp/cloudflare-suffix.txt
 
           cat ./publish/cloudflare.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-cloudflare-other.txt
-          curl -sSL ${cloudflare} | awk '/^DOMAIN,/' >> ./tmp/temp-cloudflare-other.txt
+          curl -sSL ${cloudflare} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-cloudflare-other.txt
           sort --ignore-case -u ./tmp/temp-cloudflare-other.txt > ./tmp/cloudflare-other.txt
 
       - name: Generate `spotify`
@@ -408,51 +408,51 @@ jobs:
       - name: Generate `shopee`
         run: |
           cat ./publish/shopee.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-shopee-suffix.txt
-          curl -sSL ${shopee} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-shopee-suffix.txt
+          curl -sSL ${shopee} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-shopee-suffix.txt
           sort --ignore-case -u ./tmp/temp-shopee-suffix.txt > ./tmp/shopee-suffix.txt
 
           cat ./publish/shopee.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-shopee-other.txt
-          curl -sSL ${shopee} | awk '/^DOMAIN,/' >> ./tmp/temp-shopee-other.txt
+          curl -sSL ${shopee} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-shopee-other.txt
           sort --ignore-case -u ./tmp/temp-shopee-other.txt > ./tmp/shopee-other.txt
 
       - name: Generate `telegram`
         run: |
           cat ./publish/telegram.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-telegram-suffix.txt
-          curl -sSL ${telegram} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-telegram-suffix.txt
+          curl -sSL ${telegram} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-telegram-suffix.txt
           sort --ignore-case -u ./tmp/temp-telegram-suffix.txt > ./tmp/telegram-suffix.txt
 
           cat ./publish/telegram.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-telegram-other.txt
-          curl -sSL ${telegram} | awk '/^DOMAIN,/' >> ./tmp/temp-telegram-other.txt
+          curl -sSL ${telegram} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-telegram-other.txt
           sort --ignore-case -u ./tmp/temp-telegram-other.txt > ./tmp/telegram-other.txt
 
       - name: Generate `truthSocial`
         run: |
           cat ./publish/truthSocial.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-truthSocial-suffix.txt
-          curl -sSL ${truthSocial} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-truthSocial-suffix.txt
+          curl -sSL ${truthSocial} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-truthSocial-suffix.txt
           sort --ignore-case -u ./tmp/temp-truthSocial-suffix.txt > ./tmp/truthSocial-suffix.txt
 
           cat ./publish/truthSocial.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-truthSocial-other.txt
-          curl -sSL ${truthSocial} | awk '/^DOMAIN,/' >> ./tmp/temp-truthSocial-other.txt
+          curl -sSL ${truthSocial} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-truthSocial-other.txt
           sort --ignore-case -u ./tmp/temp-truthSocial-other.txt > ./tmp/truthSocial-other.txt
 
       - name: Generate `twitter`
         run: |
           cat ./publish/twitter.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-twitter-suffix.txt
-          curl -sSL ${twitter} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-twitter-suffix.txt
+          curl -sSL ${twitter} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-twitter-suffix.txt
           sort --ignore-case -u ./tmp/temp-twitter-suffix.txt > ./tmp/twitter-suffix.txt
 
           cat ./publish/twitter.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-twitter-other.txt
-          curl -sSL ${twitter} | awk '/^DOMAIN,/' >> ./tmp/temp-twitter-other.txt
+          curl -sSL ${twitter} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-twitter-other.txt
           sort --ignore-case -u ./tmp/temp-twitter-other.txt > ./tmp/twitter-other.txt
 
       - name: Generate `wechat`
         run: |
           cat ./publish/wechat.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-wechat-suffix.txt
-          curl -sSL ${wechat} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-wechat-suffix.txt
+          curl -sSL ${wechat} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-wechat-suffix.txt
           sort --ignore-case -u ./tmp/temp-wechat-suffix.txt > ./tmp/wechat-suffix.txt
 
           cat ./publish/wechat.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-wechat-other.txt
-          curl -sSL ${wechat} | awk '/^DOMAIN,/' >> ./tmp/temp-wechat-other.txt
+          curl -sSL ${wechat} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-wechat-other.txt
           sort --ignore-case -u ./tmp/temp-wechat-other.txt > ./tmp/wechat-other.txt
 
       - name: Generate `media`
@@ -528,41 +528,41 @@ jobs:
       - name: Generate `github`
         run: |
           cat ./publish/github.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-github-suffix.txt
-          curl -sSL ${github} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-github-suffix.txt
+          curl -sSL ${github} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-github-suffix.txt
           sort --ignore-case -u ./tmp/temp-github-suffix.txt > ./tmp/github-suffix.txt
 
           cat ./publish/github.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-github-other.txt
-          curl -sSL ${github} | awk '/^DOMAIN,/' >> ./tmp/temp-github-other.txt
+          curl -sSL ${github} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-github-other.txt
           sort --ignore-case -u ./tmp/temp-github-other.txt > ./tmp/github-other.txt
 
       - name: Generate `gitlab`
         run: |
           cat ./publish/gitlab.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-gitlab-suffix.txt
-          curl -sSL ${gitlab} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-gitlab-suffix.txt
+          curl -sSL ${gitlab} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-gitlab-suffix.txt
           sort --ignore-case -u ./tmp/temp-gitlab-suffix.txt > ./tmp/gitlab-suffix.txt
 
           cat ./publish/gitlab.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-gitlab-other.txt
-          curl -sSL ${gitlab} | awk '/^DOMAIN,/' >> ./tmp/temp-gitlab-other.txt
+          curl -sSL ${gitlab} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-gitlab-other.txt
           sort --ignore-case -u ./tmp/temp-gitlab-other.txt > ./tmp/gitlab-other.txt
 
       - name: Generate `hulu`
         run: |
           cat ./publish/hulu.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-hulu-suffix.txt
-          curl -sSL ${hulu} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-hulu-suffix.txt
+          curl -sSL ${hulu} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-hulu-suffix.txt
           sort --ignore-case -u ./tmp/temp-hulu-suffix.txt > ./tmp/hulu-suffix.txt
 
           cat ./publish/hulu.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-hulu-other.txt
-          curl -sSL ${hulu} | awk '/^DOMAIN,/' >> ./tmp/temp-hulu-other.txt
+          curl -sSL ${hulu} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-hulu-other.txt
           sort --ignore-case -u ./tmp/temp-hulu-other.txt > ./tmp/hulu-other.txt
 
       - name: Generate `instagram`
         run: |
           cat ./publish/instagram.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-instagram-suffix.txt
-          curl -sSL ${instagram} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-instagram-suffix.txt
+          curl -sSL ${instagram} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-instagram-suffix.txt
           sort --ignore-case -u ./tmp/temp-instagram-suffix.txt > ./tmp/instagram-suffix.txt
 
           cat ./publish/instagram.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-instagram-other.txt
-          curl -sSL ${instagram} | awk '/^DOMAIN,/' >> ./tmp/temp-instagram-other.txt
+          curl -sSL ${instagram} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-instagram-other.txt
           sort --ignore-case -u ./tmp/temp-instagram-other.txt > ./tmp/instagram-other.txt
 
       - name: Generate `proxy`
@@ -645,12 +645,9 @@ jobs:
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b domains
           git add . && git commit -m "DOMAIN 数据源文件更新于 ${update_version}"
-          git remote add origin "https://S{{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
+          git remote add origin "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
           git push -f origin domains
 
-      # Step 40: Purge jsDelivr CDN
-      # Clears the jsDelivr cache for each file pushed to the `domains` branch
-      # to ensure users get the latest version immediately.
       - name: Purge jsDelivr CDN
         run: |
           cd ./domains/ || exit 1
