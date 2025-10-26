@@ -150,8 +150,13 @@ jobs:
 
       - name: Generate `ads`
         run: |
-          # This command is for a different .yaml format (anti-AD), leave it as is.
-          curl -sSL ${ads} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | sed 's/^+\./DOMAIN-SUFFIX,/; t; s/^/DOMAIN,/' | sort --ignore-case > ./domains/ads.list
+          # *** FIX: Use universal sed command for .yaml files (handles both quoted and unquoted rules) ***
+          curl -sSL ${ads} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-SUFFIX,|^DOMAIN-KEYWORD,|^PROCESS-NAME,/' | sort --ignore-case > ./domains/ads.list
+
+      - name: Generate `adsip`
+        run: |
+          # *** NEW STEP: Extract only IP rules from the ads source ***
+          curl -sSL ${ads} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^IP-CIDR,|^IP-CIDR6,/' | sort --ignore-case > ./domains/adsip.list
 
       - name: Generate `trackerslist`
         run: |
@@ -199,7 +204,7 @@ jobs:
 
           cat ./publish/applemusic.txt 2>/dev/null | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-applemusic-other.txt
           # *** FIX: Use universal sed command for .yaml files (handles both quoted and unquoted rules) ***
-          curl -sSL ${applemusic} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-applemusic-other.txt
+          curl -sSL ${applemusic} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,|^PROCESS-NAME,/' >> ./tmp/temp-applemusic-other.txt
           sort --ignore-case -u ./tmp/temp-applemusic-other.txt > ./tmp/applemusic-other.txt
 
       - name: Generate `applenews`
@@ -211,7 +216,7 @@ jobs:
 
           cat ./publish/applenews.txt 2>/dev/null | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-applenews-other.txt
           # *** FIX: Use universal sed command for .yaml files (handles both quoted and unquoted rules) ***
-          curl -sSL ${applenews} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-applenews-other.txt
+          curl -sSL ${applenews} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,|^PROCESS-NAME,/' >> ./tmp/temp-applenews-other.txt
           sort --ignore-case -u ./tmp/temp-applenews-other.txt > ./tmp/applenews-other.txt
 
       - name: Generate `apple_classical`
@@ -223,7 +228,7 @@ jobs:
 
           cat ./publish/apple_classical.txt 2>/dev/null | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-apple_classical-other.txt
           # *** FIX: Use universal sed command for .yaml files (handles both quoted and unquoted rules) ***
-          curl -sSL ${apple_classical} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-apple_classical-other.txt
+          curl -sSL ${apple_classical} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,|^PROCESS-NAME,/' >> ./tmp/temp-apple_classical-other.txt
           sort --ignore-case -u ./tmp/temp-apple_classical-other.txt > ./tmp/apple_classical-other.txt
 
       - name: Generate `google-cn`
@@ -243,7 +248,7 @@ jobs:
 
           cat ./publish/google.txt 2>/dev/null | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-google-other.txt
           # *** FIX: Use universal sed command for .yaml files (handles both quoted and unquoted rules) ***
-          curl -sSL ${google} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-google-other.txt
+          curl -sSL ${google} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,|^PROCESS-NAME,/' >> ./tmp/temp-google-other.txt
           sort --ignore-case -u ./tmp/temp-google-other.txt > ./tmp/google-other.txt
 
       - name: Generate `games-cn`
@@ -288,7 +293,7 @@ jobs:
 
           cat ./publish/douyin.txt 2>/dev/null | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-douyin-other.txt
           # *** FIX: Use universal sed command for .yaml files (handles both quoted and unquoted rules) ***
-          curl -sSL ${douyin} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-douyin-other.txt
+          curl -sSL ${douyin} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,|^PROCESS-NAME,/' >> ./tmp/temp-douyin-other.txt
           sort --ignore-case -u ./tmp/temp-douyin-other.txt > ./tmp/douyin-other.txt
 
       - name: Generate `duolingo`
@@ -300,7 +305,7 @@ jobs:
 
           cat ./publish/duolingo.txt 2>/dev/null | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-duolingo-other.txt
           # *** FIX: Use universal sed command for .yaml files (handles both quoted and unquoted rules) ***
-          curl -sSL ${duolingo} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-duolingo-other.txt
+          curl -sSL ${duolingo} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,|^PROCESS-NAME,/' >> ./tmp/temp-duolingo-other.txt
           sort --ignore-case -u ./tmp/temp-duolingo-other.txt > ./tmp/duolingo-other.txt
 
       - name: Generate `facebook`
@@ -312,7 +317,7 @@ jobs:
 
           cat ./publish/facebook.txt 2>/dev/null | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-facebook-other.txt
           # *** FIX: Use universal sed command for .yaml files (handles both quoted and unquoted rules) ***
-          curl -sSL ${facebook} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-facebook-other.txt
+          curl -sSL ${facebook} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,|^PROCESS-NAME,/' >> ./tmp/temp-facebook-other.txt
           sort --ignore-case -u ./tmp/temp-facebook-other.txt > ./tmp/facebook-other.txt
 
       - name: Generate `max`
@@ -351,7 +356,7 @@ jobs:
 
           cat ./publish/youtubemusic.txt 2>/dev/null | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-youtubemusic-other.txt
           # *** FIX: Use universal sed command for .yaml files (handles both quoted and unquoted rules) ***
-          curl -sSL ${youtubemusic} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-youtubemusic-other.txt
+          curl -sSL ${youtubemusic} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,|^PROCESS-NAME,/' >> ./tmp/temp-youtubemusic-other.txt
           sort --ignore-case -u ./tmp/temp-youtubemusic-other.txt > ./tmp/youtubemusic-other.txt
 
       - name: Generate `youtube`
@@ -381,7 +386,7 @@ jobs:
 
           cat ./publish/binance.txt 2>/dev/null | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-binance-other.txt
           # *** FIX: Use universal sed command for .yaml files (handles both quoted and unquoted rules) ***
-          curl -sSL ${binance} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-binance-other.txt
+          curl -sSL ${binance} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,|^PROCESS-NAME,/' >> ./tmp/temp-binance-other.txt
           sort --ignore-case -u ./tmp/temp-binance-other.txt > ./tmp/binance-other.txt
 
       - name: Generate `bilibili`
@@ -402,7 +407,7 @@ jobs:
 
           cat ./publish/cloudflare.txt 2>/dev/null | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-cloudflare-other.txt
           # *** FIX: Use universal sed command for .yaml files (handles both quoted and unquoted rules) ***
-          curl -sSL ${cloudflare} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-cloudflare-other.txt
+          curl -sSL ${cloudflare} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,|^PROCESS-NAME,/' >> ./tmp/temp-cloudflare-other.txt
           sort --ignore-case -u ./tmp/temp-cloudflare-other.txt > ./tmp/cloudflare-other.txt
 
       - name: Generate `spotify`
@@ -423,7 +428,7 @@ jobs:
 
           cat ./publish/shopee.txt 2>/dev/null | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-shopee-other.txt
           # *** FIX: Use universal sed command for .yaml files (handles both quoted and unquoted rules) ***
-          curl -sSL ${shopee} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-shopee-other.txt
+          curl -sSL ${shopee} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,|^PROCESS-NAME,/' >> ./tmp/temp-shopee-other.txt
           sort --ignore-case -u ./tmp/temp-shopee-other.txt > ./tmp/shopee-other.txt
 
       - name: Generate `telegram`
@@ -435,7 +440,7 @@ jobs:
 
           cat ./publish/telegram.txt 2>/dev/null | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-telegram-other.txt
           # *** FIX: Use universal sed command for .yaml files (handles both quoted and unquoted rules) ***
-          curl -sSL ${telegram} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-telegram-other.txt
+          curl -sSL ${telegram} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,|^PROCESS-NAME,/' >> ./tmp/temp-telegram-other.txt
           sort --ignore-case -u ./tmp/temp-telegram-other.txt > ./tmp/telegram-other.txt
 
       - name: Generate `truthSocial`
@@ -447,7 +452,7 @@ jobs:
 
           cat ./publish/truthSocial.txt 2>/dev/null | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-truthSocial-other.txt
           # *** FIX: Use universal sed command for .yaml files (handles both quoted and unquoted rules) ***
-          curl -sSL ${truthSocial} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-truthSocial-other.txt
+          curl -sSL ${truthSocial} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,|^PROCESS-NAME,/' >> ./tmp/temp-truthSocial-other.txt
           sort --ignore-case -u ./tmp/temp-truthSocial-other.txt > ./tmp/truthSocial-other.txt
 
       - name: Generate `twitter`
@@ -459,7 +464,7 @@ jobs:
 
           cat ./publish/twitter.txt 2>/dev/null | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-twitter-other.txt
           # *** FIX: Use universal sed command for .yaml files (handles both quoted and unquoted rules) ***
-          curl -sSL ${twitter} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-twitter-other.txt
+          curl -sSL ${twitter} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,|^PROCESS-NAME,/' >> ./tmp/temp-twitter-other.txt
           sort --ignore-case -u ./tmp/temp-twitter-other.txt > ./tmp/twitter-other.txt
 
       - name: Generate `wechat`
@@ -471,7 +476,7 @@ jobs:
 
           cat ./publish/wechat.txt 2>/dev/null | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-wechat-other.txt
           # *** FIX: Use universal sed command for .yaml files (handles both quoted and unquoted rules) ***
-          curl -sSL ${wechat} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-wechat-other.txt
+          curl -sSL ${wechat} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,|^PROCESS-NAME,/' >> ./tmp/temp-wechat-other.txt
           sort --ignore-case -u ./tmp/temp-wechat-other.txt > ./tmp/wechat-other.txt
 
       - name: Generate `media`
@@ -553,7 +558,7 @@ jobs:
 
           cat ./publish/github.txt 2>/dev/null | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-github-other.txt
           # *** FIX: Use universal sed command for .yaml files (handles both quoted and unquoted rules) ***
-          curl -sSL ${github} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-github-other.txt
+          curl -sSL ${github} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,|^PROCESS-NAME,/' >> ./tmp/temp-github-other.txt
           sort --ignore-case -u ./tmp/temp-github-other.txt > ./tmp/github-other.txt
 
       - name: Generate `gitlab`
@@ -565,7 +570,7 @@ jobs:
 
           cat ./publish/gitlab.txt 2>/dev/null | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-gitlab-other.txt
           # *** FIX: Use universal sed command for .yaml files (handles both quoted and unquoted rules) ***
-          curl -sSL ${gitlab} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-gitlab-other.txt
+          curl -sSL ${gitlab} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,|^PROCESS-NAME,/' >> ./tmp/temp-gitlab-other.txt
           sort --ignore-case -u ./tmp/temp-gitlab-other.txt > ./tmp/gitlab-other.txt
 
       - name: Generate `hulu`
@@ -577,7 +582,7 @@ jobs:
 
           cat ./publish/hulu.txt 2>/dev/null | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-hulu-other.txt
           # *** FIX: Use universal sed command for .yaml files (handles both quoted and unquoted rules) ***
-          curl -sSL ${hulu} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-hulu-other.txt
+          curl -sSL ${hulu} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,|^PROCESS-NAME,/' >> ./tmp/temp-hulu-other.txt
           sort --ignore-case -u ./tmp/temp-hulu-other.txt > ./tmp/hulu-other.txt
 
       - name: Generate `instagram`
@@ -589,7 +594,7 @@ jobs:
 
           cat ./publish/instagram.txt 2>/dev/null | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-instagram-other.txt
           # *** FIX: Use universal sed command for .yaml files (handles both quoted and unquoted rules) ***
-          curl -sSL ${instagram} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-instagram-other.txt
+          curl -sSL ${instagram} | sed -n '/payload:/,$p' | sed -E "s/^\s*-\s*'?(.*?)'?$/\1/" | awk '/^DOMAIN,|^DOMAIN-KEYWORD,|^PROCESS-NAME,/' >> ./tmp/temp-instagram-other.txt
           sort --ignore-case -u ./tmp/temp-instagram-other.txt > ./tmp/instagram-other.txt
 
       - name: Generate `proxy`
