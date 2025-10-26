@@ -1,27 +1,32 @@
 name: Build domains
 on:
-  workflow_dispatch:
+  workflow_dispatch: # Allows manual triggering
   schedule:
-    - cron: "0 18 * * *"
+    - cron: "0 18 * * *" # Runs automatically every day at 6 PM UTC
   push:
     branches:
       - master
     paths-ignore:
-      - "**/README.md"
+      - "**/README.md" # Ignores pushes that only change README files
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # Step 1: Set up environment variables
+      # Defines URLs for various source domain lists (ads, trackers, media, CN domains, etc.)
+      # and sets a version variable based on the current date/time.
       - name: Set variables
         run: |
           echo "update_version=$(date -d '+8 hours' +%Y-%m-%d)" >> ${GITHUB_ENV}
-          echo "fakeip_filter=https://raw.githubusercontent.com/juewuy/ShellCrash/dev/public/fake_ip_filter.list" >> $GITHUB_ENV
-          echo "ads1=https://raw.githubusercontent.com/privacy-protection-tools/anti-AD/master/anti-ad-clash.yaml" >> $GITHUB_ENV
-          echo "ads2=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Advertising/Advertising_Classical.yaml" >> $GITHUB_ENV
+          echo "fakeip_filter=https://raw.githubusercontent.com/DustinWin/ShellCrash/dev/public/fake_ip_filter.list" >> $GITHUB_ENV
+          echo "private=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Lan/Lan.yaml" >> $GITHUB_ENV
+          echo "ads=https://raw.githubusercontent.com/privacy-protection-tools/anti-AD/master/anti-ad-clash.yaml" >> $GITHUB_ENV
+          echo "trackerslist1=https://raw.githubusercontent.com/XIU2/TrackersListCollection/master/all.txt" >> $GITHUB_ENV
+          echo "trackerslist2=https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt" >> $GITHUB_ENV
           echo "applications1=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Download/Download.list" >> $GITHUB_ENV
           echo "applications2=https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/applications.txt" >> $GITHUB_ENV
-          echo "private1=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Lan/Lan.list" >> $GITHUB_ENV
-          echo "private2=https://raw.githubusercontent.com/XIU2/TrackersListCollection/master/all.txt" >> $GITHUB_ENV
+          echo "apple_cn=https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/apple.china.conf" >> $GITHUB_ENV
+          echo "google_cn=https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/google.china.conf" >> $GITHUB_ENV
           echo "games_cn1=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/SteamCN/SteamCN.list" >> $GITHUB_ENV
           echo "games_cn2=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Game/GameDownloadCN/GameDownloadCN.list" >> $GITHUB_ENV
           echo "netflix=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Netflix/Netflix.list" >> $GITHUB_ENV
@@ -32,6 +37,10 @@ jobs:
           echo "youtube=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/YouTube/YouTube.list" >> $GITHUB_ENV
           echo "tiktok=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/TikTok/TikTok.list" >> $GITHUB_ENV
           echo "bilibili=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/BiliBili/BiliBili.list" >> $GITHUB_ENV
+          echo "spotify=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Spotify/Spotify.list" >> $GITHUB_ENV
+          echo "media=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/GlobalMedia/GlobalMedia.list" >> $GITHUB_ENV
+          echo "games1=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Game/Game.list" >> $GITHUB_ENV
+          echo "games2=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Game/GameDownload/GameDownload.list" >> $GITHUB_ENV
           echo "ai1=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/OpenAI/OpenAI.list" >> $GITHUB_ENV
           echo "ai2=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Copilot/Copilot.list" >> $GITHUB_ENV
           echo "ai3=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Gemini/Gemini.list" >> $GITHUB_ENV
@@ -54,7 +63,6 @@ jobs:
           echo "instagram=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Instagram/Instagram.yaml" >> $GITHUB_ENV
           echo "shopee=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Shopee/Shopee.yaml" >> $GITHUB_ENV
           echo "wechat=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/WeChat/WeChat.yaml" >> $GITHUB_ENV
-          echo "lan=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Lan/Lan.yaml" >> $GITHUB_ENV
           echo "applenews=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/AppleNews/AppleNews.yaml" >> $GITHUB_ENV
           echo "applemusic=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/AppleMusic/AppleMusic.yaml" >> $GITHUB_ENV
           echo "apple_classical=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Apple/Apple_Classical.yaml" >> $GITHUB_ENV
@@ -62,258 +70,573 @@ jobs:
           echo "truthSocial=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/TruthSocial/TruthSocial.yaml" >> $GITHUB_ENV
         shell: bash
 
+      # Step 2: Check out the main repository's code
       - name: Checkout codebase
         uses: actions/checkout@master
 
+      # Step 3: Set up Go environment
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
-          go-version-file: ./go.mod
+          go-version-file: ./go.mod # Reads Go version from go.mod
 
+      # Step 4: Check out V2Fly domain-list-community repository
+      # This is a source for geosite (country-specific) domain lists.
       - name: Checkout v2fly/domain-list-community
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: v2fly/domain-list-community
           path: community
 
+      # Step 5: Check out gfwlist2dnsmasq repository
+      # This tool is used to convert the GFWList into a dnsmasq compatible format.
+      - name: Checkout cokebar/gfwlist2dnsmasq
+        uses: actions/checkout@v5
+        with:
+          repository: cokebar/gfwlist2dnsmasq
+          path: gfwlist2dnsmasq
+
+      # Step 6: Modify community domain lists
+      # Appends rules to categorize domains as either 'cn' (China) or '!cn' (not China).
       - name: Append attribute domains
         run: |
-          echo "include:geolocation-!cn @cn" >> ./community/data/cn
           echo "include:geolocation-cn @!cn" >> ./community/data/geolocation-\!cn
+          echo "include:geolocation-!cn @cn" >> ./community/data/cn
 
-      - name: Generate `clash` geosite.dat and domains(.txt files)
+      # Step 7: Generate geosite.dat and .txt domain files
+      # Uses the Go program in the main repo to process the community data.
+      - name: Generate `mihomo` geosite.dat and domains (.txt files)
         run: |
           go run ./ --datapath=./community/data/
 
-      - name: Generate fakeip-filter
+      # Steps 8-36: Generate various domain lists
+      # Each step does the following:
+      # 1. Creates a `./tmp/` directory for processing and a `./domains/` directory for final output.
+      # 2. Uses `curl` to download domain lists from the URLs defined in Step 1.
+      # 3. Uses tools like `awk`, `perl`, `sed`, `sort`, and `grep` to:
+      #    - Extract domain names.
+      #    - Format them into `DOMAIN-SUFFIX,example.com` or `DOMAIN,full.example.com` rules.
+      #    - Remove duplicates (`sort -u`).
+      #    - Handle different source list formats (plain domains, dnsmasq rules, Clash rules).
+      # 4. Merges domains from its own `publish/` directory (from Step 2) with the downloaded lists.
+      # 5. Saves the intermediate, processed files into the `./tmp/` directory.
+      #
+      # This is done for: fakeip-filter, private, ads, trackerslist, applications, microsoft-cn,
+      # apple-cn, google-cn, games-cn, netflix, disney, max, primevideo, appletv, youtube,
+      # tiktok, bilibili, spotify, media, games, ai, networktest, tld-proxy, gfw, proxy, cn, and cn-lite.
+      - name: Generate `fakeip-filter`
         run: |
           mkdir -p ./tmp/ ./domains/
-          curl -sSL ${fakeip_filter} | grep -Ev '#|\+|\*|Mijia' | sed 's/^/DOMAIN,/' > ./tmp/temp-fakeip-filter.txt
-          curl -sSL ${fakeip_filter} | grep -v '.\*' | grep -E '\*|\+' | sed 's/^[*+]\./DOMAIN-SUFFIX,/' >> ./tmp/temp-fakeip-filter.txt
-          curl -sSL ${fakeip_filter} | grep '.\*' | grep -E '\*|\+' | sed -e 's/^*/.\*/' -e 's/^+/.\+/' -e 's/^/DOMAIN-REGEX,/' >> ./tmp/temp-fakeip-filter.txt
-          sort --ignore-case ./tmp/temp-fakeip-filter.txt > ./domains/fakeip-filter.list
+          curl -sSL ${fakeip_filter} | perl -ne '/^[\+\*]\.([^\*]+)\n$/ && print "$1\n"' | sort --ignore-case > ./tmp/fakeip-filter-suffix.txt
+          curl -sSL ${fakeip_filter} | awk '!/[#+* ]/' | sed 's/^/DOMAIN,/' > ./tmp/temp-fakeip-filter-other.txt
+          curl -sSL ${fakeip_filter} | awk '/\*/ && !/#/ && !/\./' | sed -e 's/\*/\[\^\.\]\+/g' -e 's/^/DOMAIN-REGEX,\^/; s/$/\$/' >> ./tmp/temp-fakeip-filter-other.txt
+          curl -sSL ${fakeip_filter} | awk '!/#/ && (/\.\*/ || / /)' | sed -e 's/ /\\s/g' -e 's/\./\\./g' -e 's/\*/\[\^\.\]\+/g' -e 's/^\+/\.\*/' -e 's/^/DOMAIN-REGEX,\^/; s/$/\$/' >> ./tmp/temp-fakeip-filter-other.txt
+          sort --ignore-case ./tmp/temp-fakeip-filter-other.txt > ./tmp/fakeip-filter-other.txt
 
-      - name: Generate ads
+      - name: Generate `fakeip-filter-lite`
         run: |
-          curl -sSL ${ads1} | grep -Ev '#|payload:' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- '/DOMAIN,/" > ./tmp/temp-ads.txt
-          curl -sSL ${ads2} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./tmp/temp-ads.txt
-          sort --ignore-case -u ./tmp/temp-ads.txt > ./domains/ads.list
+          cat <<EOF > ./tmp/temp-fakeip-filter-lite.txt
+          DOMAIN,adguardteam.github.io
+          DOMAIN,adrules.top
+          DOMAIN,anti-ad.net
+          DOMAIN,local.adguard.org
+          DOMAIN,static.adtidy.org
+          EOF
+          curl -sSL ${fakeip_filter} | awk '!/[#+* ]/ && /ntp|stun|time/' | sed 's/^/DOMAIN,/' >> ./tmp/temp-fakeip-filter-lite.txt
+          curl -sSL ${fakeip_filter} | awk '/ntp|stun|time/' | perl -ne '/^[\+\*]\.([^\*]+)\n$/ && print "DOMAIN-SUFFIX,$1\n"' >> ./tmp/temp-fakeip-filter-lite.txt
+          curl -sSL ${fakeip_filter} | awk '/ntp|stun|time/ && /\.\*/' | sed -e 's/\./\\./g' -e 's/\*/\[\^\.\]\+/g' -e 's/^\+/\.\*/' -e 's/^/DOMAIN-REGEX,\^/; s/$/\$/' >> ./tmp/temp-fakeip-filter-lite.txt
+          sort --ignore-case ./tmp/temp-fakeip-filter-lite.txt > ./domains/fakeip-filter-lite.list
 
-      - name: Generate applications
+      - name: Generate `private`
         run: |
-          curl -sSL ${applications1} | grep -Ev '#|IP-' > ./tmp/temp-applications.txt
-          curl -sSL ${applications2} | grep -v 'payload:' | sed -e 's/^[ \t]*- //' >> ./tmp/temp-applications.txt
-          sort --ignore-case -u ./tmp/temp-applications.txt > ./domains/applications.list
-
-      - name: Generate private
-        run: |
-          cat <<EOF > ./tmp/temp-private.txt
-          DOMAIN,clash.metacubex.one
-          DOMAIN,yacd.haishan.me
-          DOMAIN,yacd.metacubex.one
+          cat ./publish/private.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-private-suffix.txt
+          curl -sSL ${private} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-private-suffix.txt
+          sort --ignore-case -u ./tmp/temp-private-suffix.txt > ./tmp/private-suffix.txt
+          cat <<EOF > ./tmp/temp-private-other.txt
+          DOMAIN,board.zash.run.place
           DOMAIN,metacubex.github.io
           DOMAIN,metacubexd.pages.dev
+          DOMAIN,yacd.haishan.me
+          DOMAIN,yacd.metacubex.one
           EOF
-          curl -sSL ${private1} | grep -Ev '#|IP-' >> ./tmp/temp-private.txt
-          curl -sSL ${private2} | grep -i '\.[A-Z]' | awk -F'[/:]' '{print $4}' | sed 's/^/DOMAIN,/' >> ./tmp/temp-private.txt
-          sort --ignore-case -u ./tmp/temp-private.txt > ./domains/private.list
+          cat ./publish/private.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' >> ./tmp/temp-private-other.txt
+          curl -sSL ${private} | awk '/^DOMAIN,/' >> ./tmp/temp-private-other.txt
+          echo "DOMAIN-REGEX,^[^.]+$" >> ./tmp/temp-private-other.txt
+          sort --ignore-case -u ./tmp/temp-private-other.txt > ./tmp/private-other.txt
 
-      - name: Generate microsoft-cn
+      - name: Generate `ads`
         run: |
-          grep '@cn$' ./publish/microsoft.txt | sed -e 's/^full:/DOMAIN,/' -e 's/^domain:/DOMAIN-SUFFIX,/' -e 's/^keyword:/DOMAIN-KEYWORD,/' -e 's/^regexp:/DOMAIN-REGEX,/' -e 's/:@cn$//' | sort --ignore-case > ./domains/microsoft-cn.list
+          curl -sSL ${ads} | perl -ne "/'([^']+)'/ && print \"\$1\n\"" | sed 's/^+\./DOMAIN-SUFFIX,/; t; s/^/DOMAIN,/' | sort --ignore-case > ./domains/ads.list
 
-      - name: Generate apple-cn
+      - name: Generate `trackerslist`
         run: |
-          grep '@cn$' ./publish/apple.txt | sed -e 's/^full:/DOMAIN,/' -e 's/^domain:/DOMAIN-SUFFIX,/' -e 's/^keyword:/DOMAIN-KEYWORD,/' -e 's/^regexp:/DOMAIN-REGEX,/' -e 's/:@cn$//' | sort --ignore-case > ./domains/apple-cn.list
+          curl -sSL ${trackerslist1} | grep -i '\.[A-Z]' | awk -F '[/:]' '{print $4}' | sed 's/^/DOMAIN,/' > ./tmp/temp-trackerslist.txt
+          curl -sSL ${trackerslist2} | grep -i '\.[A-Z]' | awk -F '[/:]' '{print $4}' | sed 's/^/DOMAIN,/' >> ./tmp/temp-trackerslist.txt
+          sort --ignore-case -u ./tmp/temp-trackerslist.txt > ./domains/trackerslist.list
 
-      - name: Generate google-cn
+      - name: Generate `applications`
         run: |
-          grep '@cn$' ./publish/google.txt | sed -e 's/^full:/DOMAIN,/' -e 's/^domain:/DOMAIN-SUFFIX,/' -e 's/^keyword:/DOMAIN-KEYWORD,/' -e 's/^regexp:/DOMAIN-REGEX,/' -e 's/:@cn$//' | sort --ignore-case > ./domains/google-cn.list
+          curl -sSL ${applications1} | awk '/^DOMAIN,|^DOMAIN-SUFFIX,|^DOMAIN-KEYWORD,|^PROCESS-NAME,/' > ./tmp/temp-applications.txt
+          curl -sSL ${applications2} | perl -ne '/^\s*-\s+(.*)/ && print "$1\n"' >> ./tmp/temp-applications.txt
+          sort --ignore-case -u ./tmp/temp-applications.txt > ./domains/applications.list
 
-      - name: Generate games-cn
+      - name: Generate `adobe`
         run: |
-          grep '@cn$' ./publish/category-games.txt | sed -e 's/^full:/DOMAIN,/' -e 's/^domain:/DOMAIN-SUFFIX,/' -e 's/^keyword:/DOMAIN-KEYWORD,/' -e 's/^regexp:/DOMAIN-REGEX,/' -e 's/:@cn$//' > ./tmp/temp-games-cn.txt
-          curl -sSL ${games_cn1} | grep -Ev '#|IP-' >> ./tmp/temp-games-cn.txt
-          curl -sSL ${games_cn2} | grep -Ev '#|IP-' >> ./tmp/temp-games-cn.txt
-          sort --ignore-case -u ./tmp/temp-games-cn.txt > ./domains/games-cn.list
+          cat ./publish/adobe.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-adobe-suffix.txt
+          curl -sSL ${adobe} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-adobe-suffix.txt
+          sort --ignore-case -u ./tmp/temp-adobe-suffix.txt > ./tmp/adobe-suffix.txt
 
-      - name: Generate netflix
-        run: |
-          curl -sSL ${netflix} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/netflix.list
+          cat ./publish/adobe.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-adobe-other.txt
+          curl -sSL ${adobe} | awk '/^DOMAIN,/' >> ./tmp/temp-adobe-other.txt
+          sort --ignore-case -u ./tmp/temp-adobe-other.txt > ./tmp/adobe-other.txt
 
-      - name: Generate disney
+      - name: Generate `microsoft-cn`
         run: |
-          curl -sSL ${disney} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/disney.list
+          cat ./publish/microsoft.txt | perl -ne '/^(domain):([^:]+):@cn/ && print "$2\n"' > ./tmp/microsoft-cn-suffix.txt
+          cat ./publish/microsoft.txt | perl -ne '/^(full):([^:]+):@cn/ && print "DOMAIN,$2\n"' > ./tmp/microsoft-cn-other.txt
 
-      - name: Generate max
+      - name: Generate `apple-cn`
         run: |
-          curl -sSL ${max} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/max.list
+          cat ./publish/apple.txt | perl -ne '/^(domain):([^:]+):@cn/ && print "$2\n"' > ./tmp/apple-cn-suffix.txt
+          cat ./publish/apple.txt | perl -ne '/^(full):([^:]+):@cn/ && print "DOMAIN,$2\n"' > ./tmp/temp-apple-cn-other.txt
+          curl -sSL ${apple_cn} | perl -ne '/server=\/([^\/]+)/ && print "DOMAIN,$1\n"' >> ./tmp/temp-apple-cn-other.txt
+          sort --ignore-case -u ./tmp/temp-apple-cn-other.txt > ./tmp/apple-cn-other.txt
 
-      - name: Generate primevideo
+      - name: Generate `applemusic`
         run: |
-          curl -sSL ${primevideo} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/primevideo.list
+          cat ./publish/applemusic.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-applemusic-suffix.txt
+          curl -sSL ${applemusic} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-applemusic-suffix.txt
+          sort --ignore-case -u ./tmp/temp-applemusic-suffix.txt > ./tmp/applemusic-suffix.txt
 
-      - name: Generate appletv
-        run: |
-          curl -sSL ${appletv} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/appletv.list
+          cat ./publish/applemusic.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-applemusic-other.txt
+          curl -sSL ${applemusic} | awk '/^DOMAIN,/' >> ./tmp/temp-applemusic-other.txt
+          sort --ignore-case -u ./tmp/temp-applemusic-other.txt > ./tmp/applemusic-other.txt
 
-      - name: Generate youtube
+      - name: Generate `applenews`
         run: |
-          curl -sSL ${youtube} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' -e 's/,no-resolve//' | sort --ignore-case > ./domains/youtube.list
+          cat ./publish/applenews.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-applenews-suffix.txt
+          curl -sSL ${applenews} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-applenews-suffix.txt
+          sort --ignore-case -u ./tmp/temp-applenews-suffix.txt > ./tmp/applenews-suffix.txt
 
-      - name: Generate tiktok
-        run: |
-          curl -sSL ${tiktok} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/tiktok.list
+          cat ./publish/applenews.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-applenews-other.txt
+          curl -sSL ${applenews} | awk '/^DOMAIN,/' >> ./tmp/temp-applenews-other.txt
+          sort --ignore-case -u ./tmp/temp-applenews-other.txt > ./tmp/applenews-other.txt
 
-      - name: Generate bilibili
+      - name: Generate `apple_classical`
         run: |
-          curl -sSL ${bilibili} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/bilibili.list
+          cat ./publish/apple_classical.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-apple_classical-suffix.txt
+          curl -sSL ${apple_classical} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-apple_classical-suffix.txt
+          sort --ignore-case -u ./tmp/temp-apple_classical-suffix.txt > ./tmp/apple_classical-suffix.txt
 
-      - name: Generate hulu
-        run: |
-          curl -sSL ${hulu} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/hulu.list
+          cat ./publish/apple_classical.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-apple_classical-other.txt
+          curl -sSL ${apple_classical} | awk '/^DOMAIN,/' >> ./tmp/temp-apple_classical-other.txt
+          sort --ignore-case -u ./tmp/temp-apple_classical-other.txt > ./tmp/apple_classical-other.txt
 
-      - name: Generate telegram
+      - name: Generate `google-cn`
         run: |
-          curl -sSL ${telegram} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/telegram.list
+          cat ./publish/google.txt | perl -ne '/^(domain):([^:]+):@cn/ && print "$2\n"' > ./tmp/google-cn-suffix.txt
+          cat ./publish/google.txt | perl -ne '/^(full):([^:]+):@cn/ && print "DOMAIN,$2\n"' > ./tmp/temp-google-cn-other.txt
+          curl -sSL ${google_cn} | perl -ne '/server=\/([^\/]+)/ && print "DOMAIN,$1\n"' >> ./tmp/temp-google-cn-other.txt
+          sort --ignore-case -u ./tmp/temp-google-cn-other.txt > ./tmp/google-cn-other.txt
 
-      - name: Generate youtubemusic
+      - name: Generate `google`
         run: |
-          curl -sSL ${youtubemusic} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/youtubemusic.list
+          cat ./publish/google.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-google-suffix.txt
+          curl -sSL ${google} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-google-suffix.txt
+          sort --ignore-case -u ./tmp/temp-google-suffix.txt > ./tmp/google-suffix.txt
 
-      - name: Generate twitter
-        run: |
-          curl -sSL ${twitter} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/twitter.list
+          cat ./publish/google.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-google-other.txt
+          curl -sSL ${google} | awk '/^DOMAIN,/' >> ./tmp/temp-google-other.txt
+          sort --ignore-case -u ./tmp/temp-google-other.txt > ./tmp/google-other.txt
 
-      - name: Generate github
+      - name: Generate `games-cn`
         run: |
-          curl -sSL ${github} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/github.list
+          cat ./publish/category-game-accelerator-cn.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-games-cn-suffix.txt
+          cat ./publish/category-game-platforms-download.txt | perl -ne '/^(domain):([^:]+):@cn/ && print "$2\n"' >> ./tmp/temp-games-cn-suffix.txt
+          cat ./publish/category-games-cn.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' >> ./tmp/temp-games-cn-suffix.txt
+          curl -sSL ${games_cn1} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-games-cn-suffix.txt
+          curl -sSL ${games_cn2} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-games-cn-suffix.txt
+          sort --ignore-case -u ./tmp/temp-games-cn-suffix.txt > ./tmp/games-cn-suffix.txt
+          cat ./publish/category-game-accelerator-cn.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-games-cn-other.txt
+          cat ./publish/category-game-platforms-download.txt | perl -ne '/^(full):([^:]+):@cn/ && print "DOMAIN,$2\n"' >> ./tmp/temp-games-cn-other.txt
+          cat ./publish/category-games-cn.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' >> ./tmp/temp-games-cn-other.txt
+          curl -sSL ${games_cn1} | awk '/^DOMAIN,/' >> ./tmp/temp-games-cn-other.txt
+          curl -sSL ${games_cn2} | awk '/^DOMAIN,/' >> ./tmp/temp-games-cn-other.txt
+          sort --ignore-case -u ./tmp/temp-games-cn-other.txt > ./tmp/games-cn-other.txt
 
-      - name: Generate gitlab
+      - name: Generate `netflix`
         run: |
-          curl -sSL ${gitlab} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/gitlab.list
+          cat ./publish/netflix.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-netflix-suffix.txt
+          curl -sSL ${netflix} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-netflix-suffix.txt
+          sort --ignore-case -u ./tmp/temp-netflix-suffix.txt > ./tmp/netflix-suffix.txt
+          cat ./publish/netflix.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-netflix-other.txt
+          curl -sSL ${netflix} | awk '/^DOMAIN,/' >> ./tmp/temp-netflix-other.txt
+          sort --ignore-case -u ./tmp/temp-netflix-other.txt > ./tmp/netflix-other.txt
 
-      - name: Generate cloudflare
+      - name: Generate `disney`
         run: |
-          curl -sSL ${cloudflare} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/cloudflare.list
+          cat ./publish/disney.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-disney-suffix.txt
+          curl -sSL ${disney} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-disney-suffix.txt
+          sort --ignore-case -u ./tmp/temp-disney-suffix.txt > ./tmp/disney-suffix.txt
+          cat ./publish/disney.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-disney-other.txt
+          curl -sSL ${disney} | awk '/^DOMAIN,/' >> ./tmp/temp-disney-other.txt
+          sort --ignore-case -u ./tmp/temp-disney-other.txt > ./tmp/disney-other.txt
 
-      - name: Generate adobe
+      - name: Generate `douyin`
         run: |
-          curl -sSL ${adobe} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/adobe.list
+          cat ./publish/douyin.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-douyin-suffix.txt
+          curl -sSL ${douyin} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-douyin-suffix.txt
+          sort --ignore-case -u ./tmp/temp-douyin-suffix.txt > ./tmp/douyin-suffix.txt
 
-      - name: Generate binance
-        run: |
-          curl -sSL ${binance} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/binance.list
+          cat ./publish/douyin.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-douyin-other.txt
+          curl -sSL ${douyin} | awk '/^DOMAIN,/' >> ./tmp/temp-douyin-other.txt
+          sort --ignore-case -u ./tmp/temp-douyin-other.txt > ./tmp/douyin-other.txt
 
-      - name: Generate douyin
+      - name: Generate `duolingo`
         run: |
-          curl -sSL ${douyin} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/douyin.list
+          cat ./publish/duolingo.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-duolingo-suffix.txt
+          curl -sSL ${duolingo} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-duolingo-suffix.txt
+          sort --ignore-case -u ./tmp/temp-duolingo-suffix.txt > ./tmp/duolingo-suffix.txt
 
-      - name: Generate duolingo
-        run: |
-          curl -sSL ${duolingo} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/duolingo.list
+          cat ./publish/duolingo.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-duolingo-other.txt
+          curl -sSL ${duolingo} | awk '/^DOMAIN,/' >> ./tmp/temp-duolingo-other.txt
+          sort --ignore-case -u ./tmp/temp-duolingo-other.txt > ./tmp/duolingo-other.txt
 
-      - name: Generate facebook
+      - name: Generate `facebook`
         run: |
-          curl -sSL ${facebook} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/facebook.list
+          cat ./publish/facebook.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-facebook-suffix.txt
+          curl -sSL ${facebook} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-facebook-suffix.txt
+          sort --ignore-case -u ./tmp/temp-facebook-suffix.txt > ./tmp/facebook-suffix.txt
 
-      - name: Generate instagram
-        run: |
-          curl -sSL ${instagram} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/instagram.list
+          cat ./publish/facebook.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-facebook-other.txt
+          curl -sSL ${facebook} | awk '/^DOMAIN,/' >> ./tmp/temp-facebook-other.txt
+          sort --ignore-case -u ./tmp/temp-facebook-other.txt > ./tmp/facebook-other.txt
 
-      - name: Generate shopee
+      - name: Generate `max`
         run: |
-          curl -sSL ${shopee} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/shopee.list
-          
-      - name: Generate wechat
-        run: |
-          curl -sSL ${wechat} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/wechat.list
+          cat ./publish/hbo.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-max-suffix.txt
+          curl -sSL ${max} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-max-suffix.txt
+          sort --ignore-case -u ./tmp/temp-max-suffix.txt > ./tmp/max-suffix.txt
+          cat ./publish/hbo.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-max-other.txt
+          curl -sSL ${max} | awk '/^DOMAIN,/' >> ./tmp/temp-max-other.txt
+          sort --ignore-case -u ./tmp/temp-max-other.txt > ./tmp/max-other.txt
 
-      - name: Generate lan
+      - name: Generate `primevideo`
         run: |
-          curl -sSL ${lan} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/lan.list
+          cat ./publish/primevideo.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-primevideo-suffix.txt
+          curl -sSL ${primevideo} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-primevideo-suffix.txt
+          sort --ignore-case -u ./tmp/temp-primevideo-suffix.txt > ./tmp/primevideo-suffix.txt
+          cat ./publish/primevideo.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-primevideo-other.txt
+          curl -sSL ${primevideo} | awk '/^DOMAIN,/' >> ./tmp/temp-primevideo-other.txt
+          sort --ignore-case -u ./tmp/temp-primevideo-other.txt > ./tmp/primevideo-other.txt
 
-      - name: Generate applenews
+      - name: Generate `appletv`
         run: |
-          curl -sSL ${applenews} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/applenews.list
+          cat ./publish/apple-tvplus.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-appletv-suffix.txt
+          curl -sSL ${appletv} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-appletv-suffix.txt
+          sort --ignore-case -u ./tmp/temp-appletv-suffix.txt > ./tmp/appletv-suffix.txt
+          cat ./publish/apple-tvplus.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-appletv-other.txt
+          curl -sSL ${appletv} | awk '/^DOMAIN,/' >> ./tmp/temp-appletv-other.txt
+          sort --ignore-case -u ./tmp/temp-appletv-other.txt > ./tmp/appletv-other.txt
 
-      - name: Generate applemusic
+      - name: Generate `youtubemusic`
         run: |
-          curl -sSL ${applemusic} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/applemusic.list
+          cat ./publish/youtubemusic.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-youtubemusic-suffix.txt
+          curl -sSL ${youtubemusic} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-youtubemusic-suffix.txt
+          sort --ignore-case -u ./tmp/temp-youtubemusic-suffix.txt > ./tmp/youtubemusic-suffix.txt
 
-      - name: Generate google
-        run: |
-          curl -sSL ${google} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/google.list 
+          cat ./publish/youtubemusic.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-youtubemusic-other.txt
+          curl -sSL ${youtubemusic} | awk '/^DOMAIN,/' >> ./tmp/temp-youtubemusic-other.txt
+          sort --ignore-case -u ./tmp/temp-youtubemusic-other.txt > ./tmp/youtubemusic-other.txt
 
-      - name: Generate truthSocial
+      - name: Generate `youtube`
         run: |
-          curl -sSL ${truthSocial} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/truthSocial.list
+          cat ./publish/youtube.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-youtube-suffix.txt
+          curl -sSL ${youtube} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-youtube-suffix.txt
+          sort --ignore-case -u ./tmp/temp-youtube-suffix.txt > ./tmp/youtube-suffix.txt
+          cat ./publish/youtube.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-youtube-other.txt
+          curl -sSL ${youtube} | awk '/^DOMAIN,/' >> ./tmp/temp-youtube-other.txt
+          sort --ignore-case -u ./tmp/temp-youtube-other.txt > ./tmp/youtube-other.txt
 
-      - name: Generate apple_classical
+      - name: Generate `tiktok`
         run: |
-          curl -sSL ${apple_classical} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/apple_classical.list
+          cat ./publish/tiktok.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-tiktok-suffix.txt
+          curl -sSL ${tiktok} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-tiktok-suffix.txt
+          sort --ignore-case -u ./tmp/temp-tiktok-suffix.txt > ./tmp/tiktok-suffix.txt
+          cat ./publish/tiktok.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-tiktok-other.txt
+          curl -sSL ${tiktok} | awk '/^DOMAIN,/' >> ./tmp/temp-tiktok-other.txt
+          sort --ignore-case -u ./tmp/temp-tiktok-other.txt > ./tmp/tiktok-other.txt
 
-      - name: Generate ai
+      - name: Generate `binance`
         run: |
-          curl -sSL ${ai1} | grep -Ev '#|IP-' > ./tmp/temp-ai.txt
-          curl -sSL ${ai2} | grep -Ev '#|IP-' >> ./tmp/temp-ai.txt
-          curl -sSL ${ai3} | grep -Ev '#|IP-' >> ./tmp/temp-ai.txt
-          curl -sSL ${ai4} | grep -Ev '#|IP-' >> ./tmp/temp-ai.txt
-          sort --ignore-case -u ./tmp/temp-ai.txt > ./domains/ai.list
+          cat ./publish/binance.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-binance-suffix.txt
+          curl -sSL ${binance} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-binance-suffix.txt
+          sort --ignore-case -u ./tmp/temp-binance-suffix.txt > ./tmp/binance-suffix.txt
 
-      - name: Generate networktest
-        run: |
-          cat <<EOF > ./tmp/temp-networktest.txt
-          DOMAIN-KEYWORD,ipv6-test
-          DOMAIN-KEYWORD,ipv6test
-          DOMAIN-KEYWORD,test-ipv6
-          DOMAIN-KEYWORD,testipv6
-          EOF
-          curl -sSL ${networktest} | grep -Ev '#|IP-' >> ./tmp/temp-networktest.txt
-          sort --ignore-case -u ./tmp/temp-networktest.txt > ./domains/networktest.list
+          cat ./publish/binance.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-binance-other.txt
+          curl -sSL ${binance} | awk '/^DOMAIN,/' >> ./tmp/temp-binance-other.txt
+          sort --ignore-case -u ./tmp/temp-binance-other.txt > ./tmp/binance-other.txt
 
-      - name: Generate proxy
+      - name: Generate `bilibili`
         run: |
-          sed -e 's/^full:/DOMAIN,/' -e 's/^domain:/DOMAIN-SUFFIX,/' -e 's/^keyword:/DOMAIN-KEYWORD,/' -e 's/^regexp:/DOMAIN-REGEX,/' -e 's/:@\!cn$//' ./publish/geolocation-\!cn.txt >> ./tmp/temp-proxy.txt
-          curl -sSL ${proxy} | grep -Ev '#|IP-' >> ./tmp/temp-proxy.txt
-          sort --ignore-case -u ./tmp/temp-proxy.txt > ./domains/proxy.list
+          cat ./publish/bilibili.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-bilibili-suffix.txt
+          curl -sSL ${bilibili} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-bilibili-suffix.txt
+          sort --ignore-case -u ./tmp/temp-bilibili-suffix.txt > ./tmp/bilibili-suffix.txt
+          cat ./publish/bilibili.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-bilibili-other.txt
+          curl -sSL ${bilibili} | awk '/^DOMAIN,/' >> ./tmp/temp-bilibili-other.txt
+          sort --ignore-case -u ./tmp/temp-bilibili-other.txt > ./tmp/bilibili-other.txt
 
-      - name: Generate cn
+      - name: Generate `cloudflare`
         run: |
-          sed -e 's/^full:/DOMAIN,/' -e 's/^domain:/DOMAIN-SUFFIX,/' -e 's/^keyword:/DOMAIN-KEYWORD,/' -e 's/^regexp:/DOMAIN-REGEX,/' -e 's/:@cn$//' ./publish/cn.txt > ./tmp/temp-cn.txt
-          curl -sSL ${cn} | grep -Ev '#|IP-' >> ./tmp/temp-cn.txt
-          # 过滤掉 browserleaks.com
-          grep -v 'browserleaks.com' ./tmp/temp-cn.txt > ./tmp/temp-cn-filtered.txt
-          sort --ignore-case -u ./tmp/temp-cn-filtered.txt > ./domains/cn.list
+          cat ./publish/cloudflare.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-cloudflare-suffix.txt
+          curl -sSL ${cloudflare} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-cloudflare-suffix.txt
+          sort --ignore-case -u ./tmp/temp-cloudflare-suffix.txt > ./tmp/cloudflare-suffix.txt
+
+          cat ./publish/cloudflare.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-cloudflare-other.txt
+          curl -sSL ${cloudflare} | awk '/^DOMAIN,/' >> ./tmp/temp-cloudflare-other.txt
+          sort --ignore-case -u ./tmp/temp-cloudflare-other.txt > ./tmp/cloudflare-other.txt
+
+      - name: Generate `spotify`
+        run: |
+          cat ./publish/spotify.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-spotify-suffix.txt
+          curl -sSL ${spotify} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-spotify-suffix.txt
+          sort --ignore-case -u ./tmp/temp-spotify-suffix.txt > ./tmp/spotify-suffix.txt
+          cat ./publish/spotify.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-spotify-other.txt
+          curl -sSL ${spotify} | awk '/^DOMAIN,/' >> ./tmp/temp-spotify-other.txt
+          sort --ignore-case -u ./tmp/temp-spotify-other.txt > ./tmp/spotify-other.txt
+
+      - name: Generate `shopee`
+        run: |
+          cat ./publish/shopee.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-shopee-suffix.txt
+          curl -sSL ${shopee} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-shopee-suffix.txt
+          sort --ignore-case -u ./tmp/temp-shopee-suffix.txt > ./tmp/shopee-suffix.txt
+
+          cat ./publish/shopee.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-shopee-other.txt
+          curl -sSL ${shopee} | awk '/^DOMAIN,/' >> ./tmp/temp-shopee-other.txt
+          sort --ignore-case -u ./tmp/temp-shopee-other.txt > ./tmp/shopee-other.txt
+
+      - name: Generate `telegram`
+        run: |
+          cat ./publish/telegram.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-telegram-suffix.txt
+          curl -sSL ${telegram} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-telegram-suffix.txt
+          sort --ignore-case -u ./tmp/temp-telegram-suffix.txt > ./tmp/telegram-suffix.txt
+
+          cat ./publish/telegram.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-telegram-other.txt
+          curl -sSL ${telegram} | awk '/^DOMAIN,/' >> ./tmp/temp-telegram-other.txt
+          sort --ignore-case -u ./tmp/temp-telegram-other.txt > ./tmp/telegram-other.txt
+
+      - name: Generate `truthSocial`
+        run: |
+          cat ./publish/truthSocial.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-truthSocial-suffix.txt
+          curl -sSL ${truthSocial} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-truthSocial-suffix.txt
+          sort --ignore-case -u ./tmp/temp-truthSocial-suffix.txt > ./tmp/truthSocial-suffix.txt
+
+          cat ./publish/truthSocial.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-truthSocial-other.txt
+          curl -sSL ${truthSocial} | awk '/^DOMAIN,/' >> ./tmp/temp-truthSocial-other.txt
+          sort --ignore-case -u ./tmp/temp-truthSocial-other.txt > ./tmp/truthSocial-other.txt
+
+      - name: Generate `twitter`
+        run: |
+          cat ./publish/twitter.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-twitter-suffix.txt
+          curl -sSL ${twitter} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-twitter-suffix.txt
+          sort --ignore-case -u ./tmp/temp-twitter-suffix.txt > ./tmp/twitter-suffix.txt
+
+          cat ./publish/twitter.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-twitter-other.txt
+          curl -sSL ${twitter} | awk '/^DOMAIN,/' >> ./tmp/temp-twitter-other.txt
+          sort --ignore-case -u ./tmp/temp-twitter-other.txt > ./tmp/twitter-other.txt
+
+      - name: Generate `wechat`
+        run: |
+          cat ./publish/wechat.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-wechat-suffix.txt
+          curl -sSL ${wechat} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-wechat-suffix.txt
+          sort --ignore-case -u ./tmp/temp-wechat-suffix.txt > ./tmp/wechat-suffix.txt
+
+          cat ./publish/wechat.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-wechat-other.txt
+          curl -sSL ${wechat} | awk '/^DOMAIN,/' >> ./tmp/temp-wechat-other.txt
+          sort --ignore-case -u ./tmp/temp-wechat-other.txt > ./tmp/wechat-other.txt
+
+      - name: Generate `media`
+        run: |
+          curl -sSL ${media} | awk '/^DOMAIN,|^DOMAIN-SUFFIX,/' | sort --ignore-case > ./domains/media.list
+
+      - name: Generate `games`
+        run: |
+          chmod +x ./tools/removeFrom.py
+          cat ./publish/category-game-platforms-download.txt | perl -ne '/^(domain):([^:]+)(\n$|:@!cn)/ && print "$2\n"' > ./tmp/temp-games-suffix.txt
+          cat ./publish/category-games-\!cn.txt | perl -ne '/^(domain):([^:]+)(\n$|:@!cn)/ && print "$2\n"' >> ./tmp/temp-games-suffix.txt
+          # Remove `games-cn` from `games` (suffix)
+          curl -sSL ${games1} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' > ./tmp/games-with-cn-suffix-unsort.txt
+          curl -sSL ${games2} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/games-with-cn-suffix-unsort.txt
+          sort --ignore-case -u ./tmp/games-with-cn-suffix-unsort.txt > ./tmp/games-with-cn-suffix.txt
+          curl -sSL ${games_cn1} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' > ./tmp/games-cn-suffix-deleted-unsort.txt
+          curl -sSL ${games_cn2} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/games-cn-suffix-deleted-unsort.txt
+          sort --ignore-case -u ./tmp/games-cn-suffix-deleted-unsort.txt > ./tmp/games-cn-suffix-deleted.txt
+          python ./tools/removeFrom.py -remove ./tmp/games-cn-suffix-deleted.txt -from ./tmp/games-with-cn-suffix.txt -out ./tmp/games-without-cn-suffix.txt
+          cat ./tmp/games-without-cn-suffix.txt >> ./tmp/temp-games-suffix.txt
+          sort --ignore-case -u ./tmp/temp-games-suffix.txt > ./tmp/games-suffix.txt
+          cat ./publish/category-game-platforms-download.txt | perl -ne '/^(full):([^:]+)(\n$|:@!cn)/ && print "DOMAIN,$2\n"' > ./tmp/temp-games-other.txt
+          cat ./publish/category-games-\!cn.txt | perl -ne '/^(full):([^:]+)(\n$|:@!cn)/ && print "DOMAIN,$2\n"' >> ./tmp/temp-games-other.txt
+          # Remove `games-cn` from `games` (other)
+          curl -sSL ${games1} | awk '/^DOMAIN,/' > ./tmp/games-with-cn-other-unsort.txt
+          curl -sSL ${games2} | awk '/^DOMAIN,/' >> ./tmp/games-with-cn-other-unsort.txt
+          sort --ignore-case -u ./tmp/games-with-cn-other-unsort.txt > ./tmp/games-with-cn-other.txt
+          curl -sSL ${games_cn1} | awk '/^DOMAIN,/' > ./tmp/games-cn-other-deleted-unsort.txt
+          curl -sSL ${games_cn2} | awk '/^DOMAIN,/' >> ./tmp/games-cn-other-deleted-unsort.txt
+          sort --ignore-case -u ./tmp/games-cn-other-deleted-unsort.txt > ./tmp/games-cn-other-deleted.txt
+          python ./tools/removeFrom.py -remove ./tmp/games-cn-other-deleted.txt -from ./tmp/games-with-cn-other.txt -out ./tmp/games-without-cn-other.txt
+          cat ./tmp/games-without-cn-other.txt >> ./tmp/temp-games-other.txt
+          sort --ignore-case -u ./tmp/temp-games-other.txt > ./tmp/games-other.txt
+
+      - name: Generate `ai`
+        run: |
+          cat ./publish/category-ai-\!cn.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-ai-suffix.txt
+          curl -sSL ${ai1} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-ai-suffix.txt
+          curl -sSL ${ai2} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-ai-suffix.txt
+          curl -sSL ${ai3} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-ai-suffix.txt
+          curl -sSL ${ai4} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-ai-suffix.txt
+          sort --ignore-case -u ./tmp/temp-ai-suffix.txt > ./tmp/ai-suffix.txt
+
+          cat ./publish/category-ai-\!cn.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-ai-other.txt
+          curl -sSL ${ai1} | awk '/^DOMAIN,/' >> ./tmp/temp-ai-other.txt
+          curl -sSL ${ai2} | awk '/^DOMAIN,/' >> ./tmp/temp-ai-other.txt
+          curl -sSL ${ai3} | awk '/^DOMAIN,/' >> ./tmp/temp-ai-other.txt
+          curl -sSL ${ai4} | awk '/^DOMAIN,/' >> ./tmp/temp-ai-other.txt
+          sort --ignore-case -u ./tmp/temp-ai-other.txt > ./tmp/ai-other.txt
+
+      - name: Generate `networktest`
+        run: |
+          cat ./publish/test-ipv6.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-networktest-suffix.txt
+          cat ./publish/category-speedtest.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' >> ./tmp/temp-networktest-suffix.txt
+          curl -sSL ${networktest} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-networktest-suffix.txt
+          sort --ignore-case -u ./tmp/temp-networktest-suffix.txt > ./tmp/networktest-suffix.txt
+          cat ./publish/test-ipv6.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-networktest-other.txt
+          cat ./publish/category-speedtest.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' >> ./tmp/temp-networktest-other.txt
+          curl -sSL ${networktest} | awk '/^DOMAIN,|^DOMAIN-KEYWORD,/' >> ./tmp/temp-networktest-other.txt
+          sort --ignore-case -u ./tmp/temp-networktest-other.txt > ./tmp/networktest-other.txt
+
+      - name: Generate `tld-proxy`
+        run: |
+          cat ./publish/tld-\!cn.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/tld-proxy-suffix.txt
+          cat ./publish/tld-\!cn.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/tld-proxy-other.txt
+
+      - name: Generate `gfw`
+        run: |
+          chmod +x ./gfwlist2dnsmasq/gfwlist2dnsmasq.sh
+          ./gfwlist2dnsmasq/gfwlist2dnsmasq.sh -l -o ./tmp/temp-gfw.txt
+          cat ./tmp/temp-gfw.txt | sed 's/^/DOMAIN-SUFFIX,/' | sort --ignore-case > ./domains/gfw.list
+
+      - name: Generate `github`
+        run: |
+          cat ./publish/github.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-github-suffix.txt
+          curl -sSL ${github} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-github-suffix.txt
+          sort --ignore-case -u ./tmp/temp-github-suffix.txt > ./tmp/github-suffix.txt
+
+          cat ./publish/github.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-github-other.txt
+          curl -sSL ${github} | awk '/^DOMAIN,/' >> ./tmp/temp-github-other.txt
+          sort --ignore-case -u ./tmp/temp-github-other.txt > ./tmp/github-other.txt
+
+      - name: Generate `gitlab`
+        run: |
+          cat ./publish/gitlab.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-gitlab-suffix.txt
+          curl -sSL ${gitlab} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-gitlab-suffix.txt
+          sort --ignore-case -u ./tmp/temp-gitlab-suffix.txt > ./tmp/gitlab-suffix.txt
+
+          cat ./publish/gitlab.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-gitlab-other.txt
+          curl -sSL ${gitlab} | awk '/^DOMAIN,/' >> ./tmp/temp-gitlab-other.txt
+          sort --ignore-case -u ./tmp/temp-gitlab-other.txt > ./tmp/gitlab-other.txt
+
+      - name: Generate `hulu`
+        run: |
+          cat ./publish/hulu.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-hulu-suffix.txt
+          curl -sSL ${hulu} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-hulu-suffix.txt
+          sort --ignore-case -u ./tmp/temp-hulu-suffix.txt > ./tmp/hulu-suffix.txt
+
+          cat ./publish/hulu.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-hulu-other.txt
+          curl -sSL ${hulu} | awk '/^DOMAIN,/' >> ./tmp/temp-hulu-other.txt
+          sort --ignore-case -u ./tmp/temp-hulu-other.txt > ./tmp/hulu-other.txt
+
+      - name: Generate `instagram`
+        run: |
+          cat ./publish/instagram.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-instagram-suffix.txt
+          curl -sSL ${instagram} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-instagram-suffix.txt
+          sort --ignore-case -u ./tmp/temp-instagram-suffix.txt > ./tmp/instagram-suffix.txt
+
+          cat ./publish/instagram.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-instagram-other.txt
+          curl -sSL ${instagram} | awk '/^DOMAIN,/' >> ./tmp/temp-instagram-other.txt
+          sort --ignore-case -u ./tmp/temp-instagram-other.txt > ./tmp/instagram-other.txt
+
+      - name: Generate `proxy`
+        run: |
+          cp -f ./tmp/temp-gfw.txt ./tmp/temp-proxy-suffix.txt
+          cat ./publish/geolocation-\!cn.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' >> ./tmp/temp-proxy-suffix.txt
+          curl -sSL ${proxy} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-proxy-suffix.txt
+          sort --ignore-case -u ./tmp/temp-proxy-suffix.txt > ./tmp/proxy-suffix.txt
+          cat ./publish/geolocation-\!cn.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-proxy-other.txt
+          curl -sSL ${proxy} | awk '/^DOMAIN,/' >> ./tmp/temp-proxy-other.txt
+          sort --ignore-case -u ./tmp/temp-proxy-other.txt > ./tmp/proxy-other.txt
+
+      - name: Generate `cn`
+        run: |
+          cat ./publish/cn.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-cn-suffix.txt
+          curl -sSL ${cn} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-cn-suffix.txt
+          sort --ignore-case -u ./tmp/temp-cn-suffix.txt > ./tmp/cn-suffix.txt
+
+          cat ./publish/cn.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-cn-other.txt
+          curl -sSL ${cn} | awk '/^DOMAIN,/' >> ./tmp/temp-cn-other.txt
+          sort --ignore-case -u ./tmp/temp-cn-other.txt > ./tmp/cn-other.txt
+
+      - name: Generate `cn-lite`
+        run: |
+          cat ./publish/cn.txt | perl -ne '/^(domain):([^:]+)(\n$|:@.+)/ && print "$2\n"' > ./tmp/temp-cn-lite-suffix.txt
+          curl -sSL ${cn1} | awk '/^DOMAIN-SUFFIX,/' | sed 's/DOMAIN-SUFFIX,//' >> ./tmp/temp-cn-lite-suffix.txt
+          sort --ignore-case -u ./tmp/temp-cn-lite-suffix.txt > ./tmp/cn-lite-suffix.txt
+          cat ./publish/cn.txt | perl -ne '/^(full):([^:]+)(\n$|:@.+)/ && print "DOMAIN,$2\n"' > ./tmp/temp-cn-lite-other.txt
+          curl -sSL ${cn1} | awk '/^DOMAIN,/' >> ./tmp/temp-cn-lite-other.txt
+          sort --ignore-case -u ./tmp/temp-cn-lite-other.txt > ./tmp/cn-lite-other.txt
+
+      # Step 37: De-duplication and final formatting
+      # This is a crucial step. It runs custom Python scripts (`findRedundantDomain.py`, `removeFrom.py`)
+      # and a shell script (`filter.sh`) to:
+      # 1. Find redundant domains (e.g., if `google.com` is in a list, `www.google.com` is redundant).
+      # 2. Remove these redundant entries from the suffix lists.
+      # 3. Combine the cleaned-up suffix list (prefixed with `DOMAIN-SUFFIX,`) with the "other" list (full domains, regex, etc.).
+      # 4. Sort the combined list and save the final, clean ruleset to the `./domains/` directory (e.g., `./domains/proxy.list`).
+      # 5. Cleans up all temporary files.
+      - name: Remove redundant domains
+        run: |
+          chmod +x ./tools/*.py ./tools/filter.sh
+          archs=(fakeip-filter private microsoft-cn apple-cn google-cn games-cn netflix disney max primevideo appletv youtube tiktok bilibili spotify games ai networktest tld-proxy proxy cn cn-lite adobe applemusic applenews apple_classical google douyin duolingo facebook binance cloudflare shopee telegram truthSocial twitter wechat github gitlab hulu instagram youtubemusic)
+          for arch in "${archs[@]}"; do
+            python ./tools/findRedundantDomain.py "./tmp/${arch}-suffix.txt" "./tmp/${arch}-deleted-unsort-suffix.txt"
+            [ ! -f "./tmp/${arch}-deleted-unsort-suffix.txt" ] && touch "./tmp/${arch}-deleted-unsort-suffix.txt"
+            sort --ignore-case "./tmp/${arch}-deleted-unsort-suffix.txt" > "./tmp/${arch}-deleted-sort-suffix.txt"
+            python ./tools/removeFrom.py -remove "./tmp/${arch}-deleted-sort-suffix.txt" -from "./tmp/${arch}-suffix.txt" -out "./tmp/none-redundant-${arch}-suffix.txt"
+            cat "./tmp/none-redundant-${arch}-suffix.txt" | sed 's/^/DOMAIN-SUFFIX,/' > "./tmp/done-${arch}-suffix.txt"
+            cat "./tmp/${arch}-other.txt" "./tmp/done-${arch}-suffix.txt" | sort --ignore-case -u > "./tmp/${arch}-redundant.txt"
+
+            ./tools/filter.sh "./tmp/${arch}-redundant.txt" > "./domains/${arch}.list"
+          done
           rm -rf ./tmp* ./publish*
 
-      - name: Generate custom
-        run: |
-          cat <<EOF > ./domains/custom.list
-          DOMAIN-SUFFIX,czzy77.com
-          DOMAIN-SUFFIX,cz01.vip
-          DOMAIN-SUFFIX,cz01.tv
-          DOMAIN-SUFFIX,czzy88.com
-          DOMAIN-SUFFIX,czz9.com
-          DOMAIN-SUFFIX,czzy33.com
-          DOMAIN-SUFFIX,czzy.tv
-          DOMAIN,cf.zmdhc.com
-          DOMAIN,7sc.cc
-          DOMAIN,xs.wxtv.cc
-          DOMAIN,www.pcmag.com
-          EOF
-
-      - name: Release and upload `clash` assets
+      # Step 38: Create a GitHub Release
+      # Bundles all files from the `./domains/` directory into a GitHub Release tagged "domains".
+      # This makes the files available as a stable download.
+      - name: Release and upload `domains` assets
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           release_name: domains
           tag: domains
           overwrite: true
-          body: "域名列表文件"
+          body: |
+            供下游项目 [DustinWin/ruleset_geodata](https://github.com/DustinWin/ruleset_geodata) 使用的 DOMAIN 数据源文件
+            文件更新于 ${{ env.update_version }}
           file_glob: true
           file: ./domains/*
 
+      # Step 39: Push files to the `domains` branch
+      # Commits the generated files in `./domains/` directly to a special `domains` branch.
+      # This allows other projects to easily consume the lists via raw GitHub URLs.
       - name: Git push assets to `domains` branch
         run: |
           cd ./domains/ || exit 1
@@ -321,10 +644,13 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b domains
-          git add . && git commit -m "域名列表更新于 ${update_version}"
-          git remote add origin "https://static.142857.red/s/${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
-          git push -f -u origin domains
+          git add . && git commit -m "DOMAIN 数据源文件更新于 ${update_version}"
+          git remote add origin "https://S{{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
+          git push -f origin domains
 
+      # Step 40: Purge jsDelivr CDN
+      # Clears the jsDelivr cache for each file pushed to the `domains` branch
+      # to ensure users get the latest version immediately.
       - name: Purge jsDelivr CDN
         run: |
           cd ./domains/ || exit 1
@@ -332,618 +658,12 @@ jobs:
             curl -i "https://purge.jsdelivr.net/gh/${{ github.repository }}@domains/${file}"
           done
 
+      # Step 41: Clean up old workflow runs
+      # Deletes workflow runs older than 3 days to keep the Actions history clean.
       - name: Delete old workflow runs
         uses: Mattraks/delete-workflow-runs@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
           retain_days: 3
-          keep_minimum_runs: 1          echo "ai3=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Gemini/Gemini.list" >> $GITHUB_ENV
-          echo "ai4=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Claude/Claude.list" >> $GITHUB_ENV
-          echo "networktest=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Speedtest/Speedtest.list" >> $GITHUB_ENV
-          echo "proxy=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Global/Global.list" >> $GITHUB_ENV
-          echo "cn=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax.list" >> $GITHUB_ENV
-          echo "hulu=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Hulu/Hulu.yaml" >> $GITHUB_ENV
-          echo "telegram=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Telegram/Telegram.yaml" >> $GITHUB_ENV
-          echo "youtubemusic=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/YouTubeMusic/YouTubeMusic.yaml" >> $GITHUB_ENV
-          echo "twitter=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Twitter/Twitter.yaml" >> $GITHUB_ENV
-          echo "github=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/GitHub/GitHub.yaml" >> $GITHUB_ENV
-          echo "gitlab=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/GitLab/GitLab.yaml" >> $GITHUB_ENV
-          echo "cloudflare=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Cloudflare/Cloudflare.yaml" >> $GITHUB_ENV
-          echo "adobe=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Adobe/Adobe.list" >> $GITHUB_ENV
-          echo "binance=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Binance/Binance.yaml" >> $GITHUB_ENV
-          echo "douyin=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/DouYin/DouYin.yaml" >> $GITHUB_ENV
-          echo "duolingo=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Duolingo/Duolingo.yaml" >> $GITHUB_ENV
-          echo "facebook=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Facebook/Facebook.yaml" >> $GITHUB_ENV
-          echo "instagram=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Instagram/Instagram.yaml" >> $GITHUB_ENV
-          echo "shopee=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Shopee/Shopee.yaml" >> $GITHUB_ENV
-          echo "wechat=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/WeChat/WeChat.yaml" >> $GITHUB_ENV
-          echo "lan=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Lan/Lan.yaml" >> $GITHUB_ENV
-          echo "applenews=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/AppleNews/AppleNews.yaml" >> $GITHUB_ENV
-          echo "applemusic=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/AppleMusic/AppleMusic.yaml" >> $GITHUB_ENV
-          echo "apple_classical=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Apple/Apple_Classical.yaml" >> $GITHUB_ENV
-          echo "google=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Google/Google.yaml" >> $GITHUB_ENV
-          echo "truthSocial=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/TruthSocial/TruthSocial.yaml" >> $GITHUB_ENV
-        shell: bash
-
-      - name: Checkout codebase
-        uses: actions/checkout@master
-
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: ./go.mod
-
-      - name: Checkout v2fly/domain-list-community
-        uses: actions/checkout@v4
-        with:
-          repository: v2fly/domain-list-community
-          path: community
-
-      - name: Append attribute domains
-        run: |
-          echo "include:geolocation-!cn @cn" >> ./community/data/cn
-          echo "include:geolocation-cn @!cn" >> ./community/data/geolocation-\!cn
-
-      - name: Generate `clash` geosite.dat and domains(.txt files)
-        run: |
-          go run ./ --datapath=./community/data/
-
-      - name: Generate fakeip-filter
-        run: |
-          mkdir -p ./tmp/ ./domains/
-          curl -sSL ${fakeip_filter} | grep -Ev '#|\+|\*|Mijia' | sed 's/^/DOMAIN,/' > ./tmp/temp-fakeip-filter.txt
-          curl -sSL ${fakeip_filter} | grep -v '.\*' | grep -E '\*|\+' | sed 's/^[*+]\./DOMAIN-SUFFIX,/' >> ./tmp/temp-fakeip-filter.txt
-          curl -sSL ${fakeip_filter} | grep '.\*' | grep -E '\*|\+' | sed -e 's/^*/.\*/' -e 's/^+/.\+/' -e 's/^/DOMAIN-REGEX,/' >> ./tmp/temp-fakeip-filter.txt
-          sort --ignore-case ./tmp/temp-fakeip-filter.txt > ./domains/fakeip-filter.list
-
-      - name: Generate ads
-        run: |
-          curl -sSL ${ads1} | grep -Ev '#|payload:' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- '/DOMAIN,/" > ./tmp/temp-ads.txt
-          curl -sSL ${ads2} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./tmp/temp-ads.txt
-          sort --ignore-case -u ./tmp/temp-ads.txt > ./domains/ads.list
-
-      - name: Generate applications
-        run: |
-          curl -sSL ${applications1} | grep -Ev '#|IP-' > ./tmp/temp-applications.txt
-          curl -sSL ${applications2} | grep -v 'payload:' | sed -e 's/^[ \t]*- //' >> ./tmp/temp-applications.txt
-          sort --ignore-case -u ./tmp/temp-applications.txt > ./domains/applications.list
-
-      - name: Generate private
-        run: |
-          cat <<EOF > ./tmp/temp-private.txt
-          DOMAIN,clash.metacubex.one
-          DOMAIN,yacd.haishan.me
-          DOMAIN,yacd.metacubex.one
-          DOMAIN,metacubex.github.io
-          DOMAIN,metacubexd.pages.dev
-          EOF
-          curl -sSL ${private1} | grep -Ev '#|IP-' >> ./tmp/temp-private.txt
-          curl -sSL ${private2} | grep -i '\.[A-Z]' | awk -F'[/:]' '{print $4}' | sed 's/^/DOMAIN,/' >> ./tmp/temp-private.txt
-          sort --ignore-case -u ./tmp/temp-private.txt > ./domains/private.list
-
-      - name: Generate microsoft-cn
-        run: |
-          grep '@cn$' ./publish/microsoft.txt | sed -e 's/^full:/DOMAIN,/' -e 's/^domain:/DOMAIN-SUFFIX,/' -e 's/^keyword:/DOMAIN-KEYWORD,/' -e 's/^regexp:/DOMAIN-REGEX,/' -e 's/:@cn$//' | sort --ignore-case > ./domains/microsoft-cn.list
-
-      - name: Generate apple-cn
-        run: |
-          grep '@cn$' ./publish/apple.txt | sed -e 's/^full:/DOMAIN,/' -e 's/^domain:/DOMAIN-SUFFIX,/' -e 's/^keyword:/DOMAIN-KEYWORD,/' -e 's/^regexp:/DOMAIN-REGEX,/' -e 's/:@cn$//' | sort --ignore-case > ./domains/apple-cn.list
-
-      - name: Generate google-cn
-        run: |
-          grep '@cn$' ./publish/google.txt | sed -e 's/^full:/DOMAIN,/' -e 's/^domain:/DOMAIN-SUFFIX,/' -e 's/^keyword:/DOMAIN-KEYWORD,/' -e 's/^regexp:/DOMAIN-REGEX,/' -e 's/:@cn$//' | sort --ignore-case > ./domains/google-cn.list
-
-      - name: Generate games-cn
-        run: |
-          grep '@cn$' ./publish/category-games.txt | sed -e 's/^full:/DOMAIN,/' -e 's/^domain:/DOMAIN-SUFFIX,/' -e 's/^keyword:/DOMAIN-KEYWORD,/' -e 's/^regexp:/DOMAIN-REGEX,/' -e 's/:@cn$//' > ./tmp/temp-games-cn.txt
-          curl -sSL ${games_cn1} | grep -Ev '#|IP-' >> ./tmp/temp-games-cn.txt
-          curl -sSL ${games_cn2} | grep -Ev '#|IP-' >> ./tmp/temp-games-cn.txt
-          sort --ignore-case -u ./tmp/temp-games-cn.txt > ./domains/games-cn.list
-
-      - name: Generate netflix
-        run: |
-          curl -sSL ${netflix} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/netflix.list
-
-      - name: Generate disney
-        run: |
-          curl -sSL ${disney} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/disney.list
-
-      - name: Generate max
-        run: |
-          curl -sSL ${max} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/max.list
-
-      - name: Generate primevideo
-        run: |
-          curl -sSL ${primevideo} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/primevideo.list
-
-      - name: Generate appletv
-        run: |
-          curl -sSL ${appletv} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/appletv.list
-
-      - name: Generate youtube
-        run: |
-          curl -sSL ${youtube} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' -e 's/,no-resolve//' | sort --ignore-case > ./domains/youtube.list
-
-      - name: Generate tiktok
-        run: |
-          curl -sSL ${tiktok} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/tiktok.list
-
-      - name: Generate bilibili
-        run: |
-          curl -sSL ${bilibili} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/bilibili.list
-
-      - name: Generate hulu
-        run: |
-          curl -sSL ${hulu} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/hulu.list
-
-      - name: Generate telegram
-        run: |
-          curl -sSL ${telegram} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/telegram.list
-
-      - name: Generate youtubemusic
-        run: |
-          curl -sSL ${youtubemusic} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/youtubemusic.list
-
-      - name: Generate twitter
-        run: |
-          curl -sSL ${twitter} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/twitter.list
-
-      - name: Generate github
-        run: |
-          curl -sSL ${github} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/github.list
-
-      - name: Generate gitlab
-        run: |
-          curl -sSL ${gitlab} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/gitlab.list
-
-      - name: Generate cloudflare
-        run: |
-          curl -sSL ${cloudflare} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/cloudflare.list
-
-      - name: Generate adobe
-        run: |
-          curl -sSL ${adobe} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/adobe.list
-
-      - name: Generate binance
-        run: |
-          curl -sSL ${binance} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/binance.list
-
-      - name: Generate douyin
-        run: |
-          curl -sSL ${douyin} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/douyin.list
-
-      - name: Generate duolingo
-        run: |
-          curl -sSL ${duolingo} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/duolingo.list
-
-      - name: Generate facebook
-        run: |
-          curl -sSL ${facebook} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/facebook.list
-
-      - name: Generate instagram
-        run: |
-          curl -sSL ${instagram} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/instagram.list
-
-      - name: Generate shopee
-        run: |
-          curl -sSL ${shopee} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/shopee.list
-          
-      - name: Generate wechat
-        run: |
-          curl -sSL ${wechat} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/wechat.list
-
-      - name: Generate lan
-        run: |
-          curl -sSL ${lan} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/lan.list
-
-      - name: Generate applenews
-        run: |
-          curl -sSL ${applenews} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/applenews.list
-
-      - name: Generate applemusic
-        run: |
-          curl -sSL ${applemusic} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/applemusic.list
-
-      - name: Generate google
-        run: |
-          curl -sSL ${google} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/google.list 
-
-      - name: Generate truthSocial
-        run: |
-          curl -sSL ${truthSocial} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/truthSocial.list
-
-      - name: Generate apple_classical
-        run: |
-          curl -sSL ${apple_classical} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/apple_classical.list
-
-      - name: Generate ai
-        run: |
-          curl -sSL ${ai1} | grep -Ev '#|IP-' > ./tmp/temp-ai.txt
-          curl -sSL ${ai2} | grep -Ev '#|IP-' >> ./tmp/temp-ai.txt
-          curl -sSL ${ai3} | grep -Ev '#|IP-' >> ./tmp/temp-ai.txt
-          curl -sSL ${ai4} | grep -Ev '#|IP-' >> ./tmp/temp-ai.txt
-          sort --ignore-case -u ./tmp/temp-ai.txt > ./domains/ai.list
-
-      - name: Generate networktest
-        run: |
-          cat <<EOF > ./tmp/temp-networktest.txt
-          DOMAIN-KEYWORD,ipv6-test
-          DOMAIN-KEYWORD,ipv6test
-          DOMAIN-KEYWORD,test-ipv6
-          DOMAIN-KEYWORD,testipv6
-          EOF
-          curl -sSL ${networktest} | grep -Ev '#|IP-' >> ./tmp/temp-networktest.txt
-          sort --ignore-case -u ./tmp/temp-networktest.txt > ./domains/networktest.list
-
-      - name: Generate proxy
-        run: |
-          sed -e 's/^full:/DOMAIN,/' -e 's/^domain:/DOMAIN-SUFFIX,/' -e 's/^keyword:/DOMAIN-KEYWORD,/' -e 's/^regexp:/DOMAIN-REGEX,/' -e 's/:@\!cn$//' ./publish/geolocation-\!cn.txt >> ./tmp/temp-proxy.txt
-          curl -sSL ${proxy} | grep -Ev '#|IP-' >> ./tmp/temp-proxy.txt
-          sort --ignore-case -u ./tmp/temp-proxy.txt > ./domains/proxy.list
-
-      - name: Generate cn
-        run: |
-          sed -e 's/^full:/DOMAIN,/' -e 's/^domain:/DOMAIN-SUFFIX,/' -e 's/^keyword:/DOMAIN-KEYWORD,/' -e 's/^regexp:/DOMAIN-REGEX,/' -e 's/:@cn$//' ./publish/cn.txt > ./tmp/temp-cn.txt
-          curl -sSL ${cn} | grep -Ev '#|IP-' >> ./tmp/temp-cn.txt
-          # 过滤掉 browserleaks.com
-          grep -v 'browserleaks.com' ./tmp/temp-cn.txt > ./tmp/temp-cn-filtered.txt
-          sort --ignore-case -u ./tmp/temp-cn-filtered.txt > ./domains/cn.list
-          rm -rf ./tmp* ./publish*
-
-      - name: Generate custom
-        run: |
-          cat <<EOF > ./domains/custom.list
-          DOMAIN-SUFFIX,czzy77.com
-          DOMAIN-SUFFIX,cz01.vip
-          DOMAIN-SUFFIX,cz01.tv
-          DOMAIN-SUFFIX,czzy88.com
-          DOMAIN-SUFFIX,czz9.com
-          DOMAIN-SUFFIX,czzy33.com
-          DOMAIN-SUFFIX,czzy.tv
-          DOMAIN,cf.zmdhc.com
-          DOMAIN,7sc.cc
-          DOMAIN,xs.wxtv.cc
-          DOMAIN,www.pcmag.com
-          EOF
-
-      - name: Release and upload `clash` assets
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          release_name: domains
-          tag: domains
-          overwrite: true
-          body: "域名列表文件"
-          file_glob: true
-          file: ./domains/*
-
-      - name: Git push assets to `domains` branch
-        run: |
-          cd ./domains/ || exit 1
-          git init
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -b domains
-          git add . && git commit -m "域名列表更新于 ${update_version}"
-          git remote add origin "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
-          git push -f -u origin domains
-
-      - name: Purge jsDelivr CDN
-        run: |
-          cd ./domains/ || exit 1
-          for file in $(ls); do
-            curl -i "https://purge.jsdelivr.net/gh/${{ github.repository }}@domains/${file}"
-          done
-
-      - name: Delete old workflow runs
-        uses: Mattraks/delete-workflow-runs@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          repository: ${{ github.repository }}
-          retain_days: 3
-          keep_minimum_runs: 1          echo "ai3=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Gemini/Gemini.list" >> $GITHUB_ENV
-          echo "ai4=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Claude/Claude.list" >> $GITHUB_ENV
-          echo "networktest=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Speedtest/Speedtest.list" >> $GITHUB_ENV
-          echo "proxy=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Global/Global.list" >> $GITHUB_ENV
-          echo "cn=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax.list" >> $GITHUB_ENV
-          echo "hulu=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Hulu/Hulu.yaml" >> $GITHUB_ENV
-          echo "telegram=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Telegram/Telegram.yaml" >> $GITHUB_ENV
-          echo "youtubemusic=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/YouTubeMusic/YouTubeMusic.yaml" >> $GITHUB_ENV
-          echo "twitter=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Twitter/Twitter.yaml" >> $GITHUB_ENV
-          echo "github=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/GitHub/GitHub.yaml" >> $GITHUB_ENV
-          echo "gitlab=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/GitLab/GitLab.yaml" >> $GITHUB_ENV
-          echo "cloudflare=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Cloudflare/Cloudflare.yaml" >> $GITHUB_ENV
-          echo "adobe=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Adobe/Adobe.list" >> $GITHUB_ENV
-          echo "binance=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Binance/Binance.yaml" >> $GITHUB_ENV
-          echo "douyin=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/DouYin/DouYin.yaml" >> $GITHUB_ENV
-          echo "duolingo=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Duolingo/Duolingo.yaml" >> $GITHUB_ENV
-          echo "facebook=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Facebook/Facebook.yaml" >> $GITHUB_ENV
-          echo "instagram=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Instagram/Instagram.yaml" >> $GITHUB_ENV
-          echo "shopee=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Shopee/Shopee.yaml" >> $GITHUB_ENV
-          echo "wechat=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/WeChat/WeChat.yaml" >> $GITHUB_ENV
-          echo "lan=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Lan/Lan.yaml" >> $GITHUB_ENV
-          echo "applenews=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/AppleNews/AppleNews.yaml" >> $GITHUB_ENV
-          echo "applemusic=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/AppleMusic/AppleMusic.yaml" >> $GITHUB_ENV
-          echo "apple_classical=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Apple/Apple_Classical.yaml" >> $GITHUB_ENV
-          echo "google=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Google/Google.yaml" >> $GITHUB_ENV
-          echo "truthSocial=https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/TruthSocial/TruthSocial.yaml" >> $GITHUB_ENV
-        shell: bash
-
-      - name: Checkout codebase
-        uses: actions/checkout@master
-
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: ./go.mod
-
-      - name: Checkout v2fly/domain-list-community
-        uses: actions/checkout@v4
-        with:
-          repository: v2fly/domain-list-community
-          path: community
-
-      - name: Append attribute domains
-        run: |
-          echo "include:geolocation-!cn @cn" >> ./community/data/cn
-          echo "include:geolocation-cn @!cn" >> ./community/data/geolocation-\!cn
-
-      - name: Generate `clash` geosite.dat and domains(.txt files)
-        run: |
-          go run ./ --datapath=./community/data/
-
-      - name: Generate fakeip-filter
-        run: |
-          mkdir -p ./tmp/ ./domains/
-          curl -sSL ${fakeip_filter} | grep -Ev '#|\+|\*|Mijia' | sed 's/^/DOMAIN,/' > ./tmp/temp-fakeip-filter.txt
-          curl -sSL ${fakeip_filter} | grep -v '.\*' | grep -E '\*|\+' | sed 's/^[*+]\./DOMAIN-SUFFIX,/' >> ./tmp/temp-fakeip-filter.txt
-          curl -sSL ${fakeip_filter} | grep  '.\*' | grep -E '\*|\+' | sed -e 's/^*/.\*/' -e 's/^+/.\+/' -e 's/^/DOMAIN-REGEX,/' >> ./tmp/temp-fakeip-filter.txt
-          sort --ignore-case ./tmp/temp-fakeip-filter.txt > ./domains/fakeip-filter.list
-
-      - name: Generate ads
-        run: |
-          curl -sSL ${ads1} | grep -Ev '#|payload:' | sed -e '/^\s*$/d' -e "s/'$//" -e 's/^[ \t]*//' -e "s/^- '+\./DOMAIN-SUFFIX,/" -e "s/^- '/DOMAIN,/" > ./tmp/temp-ads.txt
-          curl -sSL ${ads2} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' > ./tmp/temp-ads.txt
-          sort --ignore-case -u ./tmp/temp-ads.txt > ./domains/ads.list
-
-      - name: Generate applications
-        run: |
-          curl -sSL ${applications1} | grep -Ev '#|IP-' > ./tmp/temp-applications.txt
-          curl -sSL ${applications2} | grep -v 'payload:' | sed -e 's/^[ \t]*- //' >> ./tmp/temp-applications.txt
-          sort --ignore-case -u ./tmp/temp-applications.txt > ./domains/applications.list
-
-      - name: Generate private
-        run: |
-          cat <<EOF > ./tmp/temp-private.txt
-          DOMAIN,clash.metacubex.one
-          DOMAIN,yacd.haishan.me
-          DOMAIN,yacd.metacubex.one
-          DOMAIN,metacubex.github.io
-          DOMAIN,metacubexd.pages.dev
-          EOF
-          curl -sSL ${private1} | grep -Ev '#|IP-' >> ./tmp/temp-private.txt
-          curl -sSL ${private2} | grep -i '\.[A-Z]' | awk -F'[/:]' '{print $4}' | sed 's/^/DOMAIN,/' >> ./tmp/temp-private.txt
-          sort --ignore-case -u ./tmp/temp-private.txt > ./domains/private.list
-
-      - name: Generate microsoft-cn
-        run: |
-          grep '@cn$' ./publish/microsoft.txt | sed -e 's/^full:/DOMAIN,/' -e 's/^domain:/DOMAIN-SUFFIX,/' -e 's/^keyword:/DOMAIN-KEYWORD,/' -e 's/^regexp:/DOMAIN-REGEX,/' -e 's/:@cn$//' | sort --ignore-case > ./domains/microsoft-cn.list
-
-      - name: Generate apple-cn
-        run: |
-          grep '@cn$' ./publish/apple.txt | sed -e 's/^full:/DOMAIN,/' -e 's/^domain:/DOMAIN-SUFFIX,/' -e 's/^keyword:/DOMAIN-KEYWORD,/' -e 's/^regexp:/DOMAIN-REGEX,/' -e 's/:@cn$//' | sort --ignore-case > ./domains/apple-cn.list
-
-      - name: Generate google-cn
-        run: |
-          grep '@cn$' ./publish/google.txt | sed -e 's/^full:/DOMAIN,/' -e 's/^domain:/DOMAIN-SUFFIX,/' -e 's/^keyword:/DOMAIN-KEYWORD,/' -e 's/^regexp:/DOMAIN-REGEX,/' -e 's/:@cn$//' | sort --ignore-case > ./domains/google-cn.list
-
-      - name: Generate games-cn
-        run: |
-          grep '@cn$' ./publish/category-games.txt | sed -e 's/^full:/DOMAIN,/' -e 's/^domain:/DOMAIN-SUFFIX,/' -e 's/^keyword:/DOMAIN-KEYWORD,/' -e 's/^regexp:/DOMAIN-REGEX,/' -e 's/:@cn$//' > ./tmp/temp-games-cn.txt
-          curl -sSL ${games_cn1} | grep -Ev '#|IP-' >> ./tmp/temp-games-cn.txt
-          curl -sSL ${games_cn2} | grep -Ev '#|IP-' >> ./tmp/temp-games-cn.txt
-          sort --ignore-case -u ./tmp/temp-games-cn.txt > ./domains/games-cn.list
-
-      - name: Generate netflix
-        run: |
-          curl -sSL ${netflix} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/netflix.list
-
-      - name: Generate disney
-        run: |
-          curl -sSL ${disney} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/disney.list
-
-      - name: Generate max
-        run: |
-          curl -sSL ${max} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/max.list
-
-t     - name: Generate primevideo
-        run: |
-          curl -sSL ${primevideo} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/primevideo.list
-
-      - name: Generate appletv
-        run: |
-          curl -sSL ${appletv} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/appletv.list
-
-      - name: Generate youtube
-        run: |
-          curl -sSL ${youtube} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' -e 's/,no-resolve//' | sort --ignore-case > ./domains/youtube.list
-
-      - name: Generate tiktok
-        run: |
-          curl -sSL ${tiktok} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/tiktok.list
-
-      - name: Generate bilibili
-        run: |
-          curl -sSL ${bilibili} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/bilibili.list
-
-      - name: Generate hulu
-        run: |
-          curl -sSL ${hulu} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/hulu.list
-
-      - name: Generate telegram
-        run: |
-          curl -sSL ${telegram} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/telegram.list
-
-      - name: Generate youtubemusic
-        run: |
-          curl -sSL ${youtubemusic} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/youtubemusic.list
-
-      - name: Generate twitter
-        run: |
-          curl -sSL ${twitter} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/twitter.list
-
-      - name: Generate github
-        run: |
-          curl -sSL ${github} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/github.list
-
-      - name: Generate gitlab
-        run: |
-          curl -sSL ${gitlab} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/gitlab.list
-
-      - name: Generate cloudflare
-        run: |
-          curl -sSL ${cloudflare} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/cloudflare.list
-
-      - name: Generate adobe
-        run: |
-          curl -sSL ${adobe} | grep -Ev '#|IP-' | sort --ignore-case > ./domains/adobe.list
-
-      - name: Generate binance
-        run: |
-          curl -sSL ${binance} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/binance.list
-
-      - name: Generate douyin
-        run: |
-          curl -sSL ${douyin} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/douyin.list
-
-      - name: Generate duolingo
-        run: |
-          curl -sSL ${duolingo} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/duolingo.list
-
-s     - name: Generate facebook
-        run: |
-          curl -sSL ${facebook} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/facebook.list
-
-      - name: Generate instagram
-        run: |
-          curl -sSL ${instagram} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/instagram.list
-
-      - name: Generate shopee
-        run: |
-          curl -sSL ${shopee} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/shopee.list
-          
-      - name: Generate wechat
-        run: |
-          curl -sSL ${wechat} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/wechat.list
-
-      - name: Generate lan
-        run: |
-          curl -sSL ${lan} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/lan.list
-
-      - name: Generate applenews
-        run: |
-          curl -sSL ${applenews} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/applenews.list
-
-      - name: Generate applemusic
-        run: |
-          curl -sSL ${applemusic} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/applemusic.list
-
-      - name: Generate google
-        run: |
-          curl -sSL ${google} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/google.list 
-
-      - name: Generate truthSocial
-        run: |
-          curl -sSL ${truthSocial} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/truthSocial.list
-
-      - name: Generate apple_classical
-        run: |
-          curl -sSL ${apple_classical} | grep -Ev '#|payload:' | sed -e 's/^\s*-\s*//' | sort --ignore-case > ./domains/apple_classical.list
-
-      - name: Generate ai
-        run: |
-          curl -sSL ${ai1} | grep -Ev '#|IP-' > ./tmp/temp-ai.txt
-          curl -sSL ${ai2} | grep -Ev '#|IP-' >> ./tmp/temp-ai.txt
-          curl -sSL ${ai3} | grep -Ev '#|IP-' >> ./tmp/temp-ai.txt
-          curl -sSL ${ai4} | grep -Ev '#|IP-' >> ./tmp/temp-ai.txt
-          sort --ignore-case -u ./tmp/temp-ai.txt > ./domains/ai.list
-
-      - name: Generate networktest
-        run: |
-          cat <<EOF > ./tmp/temp-networktest.txt
-all         DOMAIN-KEYWORD,ipv6-test
-          DOMAIN-KEYWORD,ipv6test
-          DOMAIN-KEYWORD,test-ipv6
-          DOMAIN-KEYWORD,testipv6
-          EOF
-          curl -sSL ${networktest} | grep -Ev '#|IP-' >> ./tmp/temp-networktest.txt
-          sort --ignore-case -u ./tmp/temp-networktest.txt > ./domains/networktest.list
-
-      - name: Generate proxy
-        run: |
-          sed -e 's/^full:/DOMAIN,/' -e 's/^domain:/DOMAIN-SUFFIX,/' -e 's/^keyword:/DOMAIN-KEYWORD,/' -e 's/^regexp:/DOMAIN-REGEX,/' -e 's/:@\!cn$//' ./publish/geolocation-\!cn.txt >> ./tmp/temp-proxy.txt
-content         curl -sSL ${proxy} | grep -Ev '#|IP-' >> ./tmp/temp-proxy.txt
-          sort --ignore-case -u ./tmp/temp-proxy.txt > ./domains/proxy.list
-
-      - name: Generate cn
-        run: |
-          sed -e 's/^full:/DOMAIN,/' -e 's/^domain:/DOMAIN-SUFFIX,/' -e 's/^keyword:/DOMAIN-KEYWORD,/' -e 's/^regexp:/DOMAIN-REGEX,/' -e 's/:@cn$//' ./publish/cn.txt > ./tmp/temp-cn.txt
-t         curl -sSL ${cn} | grep -Ev '#|IP-' >> ./tmp/temp-cn.txt
-          # 过滤掉 browserleaks.com
-          grep -v 'browserleaks.com' ./tmp/temp-cn.txt > ./tmp/temp-cn-filtered.txt
-          sort --ignore-case -u ./tmp/temp-cn-filtered.txt > ./domains/cn.list
-          rm -rf ./tmp* ./publish*
-
-    s - name: Generate custom
-        run: |
-          cat <<EOF > ./domains/custom.list
-          DOMAIN-SUFFIX,czzy77.com
-          DOMAIN-SUFFIX,cz01.vip
-          DOMAIN-SUFFIX,cz01.tv
-CSS         DOMAIN-SUFFIX,czzy88.com
-          DOMAIN-SUFFIX,czz9.com
-          DOMAIN-SUFFIX,czzy33.com
-Examples         DOMAIN-SUFFIX,czzy.tv
-          DOMAIN,cf.zmdhc.com
-          DOMAIN,7sc.cc
-          DOMAIN,xs.wxtv.cc
-          DOMAIN,www.pcmag.com
-          EOF
-
-      - name: Release and upload `clash` assets
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          release_name: domains
-  Two-Way       tag: domains
-          overwrite: true
-          body: "域名列表文件"
-          file_glob: true
-          file: ./domains/*
-
-      - name: Git push assets to `domains` branch
-        run: |
-          cd ./domains/ || exit 1
-          git init
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -b domains
-          git add . && git commit -m "域名列表更新于 ${update_version}"
-          git remote add origin "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
-          git push -f -u origin domains
-
-      - name: Purge jsDelivr CDN
-    _     run: |
-          cd ./domains/ || exit 1
-          for file in $(ls); do
-            curl -i "https://purge.jsdelivr.net/gh/${{ github.repository }}@domains/${file}"
-          done
-
-      - name: Delete old workflow runs
-        uses: Mattraks/delete-workflow-runs@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          repository: ${{ github.repository }}
-  s       retain_days: 3
-          keep_minimum_runs: 1
+          keep_minimum_runs: 1
