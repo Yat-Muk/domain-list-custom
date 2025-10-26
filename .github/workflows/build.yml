@@ -665,7 +665,8 @@ jobs:
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b domains
           git add . && git commit -m "DOMAIN 数据源文件更新于 ${update_version}"
-          git remote add origin "https://github.com/${{ github.repository }}"
+          # *** FIX: Add authentication to the remote URL ***
+          git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
           git push -f --set-upstream origin domains
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
