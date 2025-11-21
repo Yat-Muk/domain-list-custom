@@ -360,7 +360,7 @@ jobs:
           tag: domains
           overwrite: true
           body: |
-            供下游项目 [DustinWin/ruleset_geodata](https://github.com/DustinWin/ruleset_geodata) 使用的 DOMAIN 数据源文件
+            供下游项目 [Yat-Muk/ruleset_geodata](https://github.com/Yat-Muk/ruleset_geodata) 使用的 DOMAIN 数据源文件
             文件更新于 ${{ env.update_version }}
           file_glob: true
           file: ./domains/*
