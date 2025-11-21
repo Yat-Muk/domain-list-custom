@@ -1,5 +1,4 @@
-name: Upstream Sync
-
+name: Smart Upstream Sync
 permissions:
   contents: write
 
@@ -9,26 +8,39 @@ on:
   workflow_dispatch:
 
 jobs:
-  sync_latest_from_upstream:
-    name: Sync latest commits from upstream repo
+  sync_tools_only:
     runs-on: ubuntu-latest
-    if: ${{ github.event.repository.fork }}
     steps:
       - name: Checkout target repo
-        uses: actions/checkout@v5
-
-      - name: Sync upstream changes
-        id: sync
-        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.1
+        uses: actions/checkout@v4
         with:
-          upstream_sync_repo: Loyalsoldier/domain-list-custom
-          upstream_sync_branch: master
-          target_sync_branch: master
-          target_repo_token: ${{ secrets.GITHUB_TOKEN }}
-          test_mode: false
+          fetch-depth: 0
 
-      - name: Sync check
-        if: failure()
+      - name: Configure Git
         run: |
-          echo "[Error] 由于上游仓库的 workflow 文件变更，导致 GitHub 自动暂停了本次自动更新，你需要手动 Sync Fork 一次。"
-          exit 1
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Add Upstream Remote
+        run: |
+          git remote add upstream https://github.com/Loyalsoldier/domain-list-custom.git
+          git fetch upstream
+
+      - name: Sync Tools and Core Files (Ignoring Workflows)
+        run: |
+          git checkout master
+          
+          git checkout upstream/master -- tools/
+          git checkout upstream/master -- go.mod
+          git checkout upstream/master -- go.sum
+          git checkout upstream/master -- *.go
+          git checkout upstream/master -- README.md
+
+          if [[ -n $(git status --porcelain) ]]; then
+            echo "Updates found from upstream tools. Committing..."
+            git add tools/ go.mod go.sum *.go README.md
+            git commit -m "chore: sync tools and core files from upstream"
+            git push origin master
+          else
+            echo "No updates found in tools or core files."
+          fi
