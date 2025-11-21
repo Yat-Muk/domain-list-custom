@@ -1,4 +1,5 @@
 name: Smart Upstream Sync
+
 permissions:
   contents: write
 
@@ -8,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  sync_tools_only:
+  sync_tools_and_core:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout target repo
@@ -21,26 +22,29 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Add Upstream Remote
+      - name: Add DustinWin Remote
         run: |
-          git remote add upstream https://github.com/Loyalsoldier/domain-list-custom.git
+          git remote add upstream https://github.com/DustinWin/domain-list-custom.git
           git fetch upstream
 
-      - name: Sync Tools and Core Files (Ignoring Workflows)
+      - name: Sync Tools and Core Files
         run: |
+          echo "Starting sync from DustinWin..."
+
           git checkout master
-          
+
           git checkout upstream/master -- tools/
           git checkout upstream/master -- go.mod
           git checkout upstream/master -- go.sum
-          git checkout upstream/master -- *.go
           git checkout upstream/master -- README.md
+          git checkout upstream/master -- *.go
 
           if [[ -n $(git status --porcelain) ]]; then
-            echo "Updates found from upstream tools. Committing..."
+            echo "Updates found from DustinWin. Committing..."
             git add tools/ go.mod go.sum *.go README.md
-            git commit -m "chore: sync tools and core files from upstream"
+            git commit -m "chore: sync tools and core dependencies from DustinWin"
             git push origin master
+            echo "Sync complete."
           else
-            echo "No updates found in tools or core files."
+            echo "No updates found. Your tools are up to date."
           fi
